@@ -1,6 +1,5 @@
 import io
 import logging
-from celery import shared_task
 from django.core.files.base import ContentFile
 from django.utils import timezone
 import segno
@@ -18,8 +17,8 @@ from .models import Certificate
 logger = logging.getLogger(__name__)
 
 
-@shared_task
 def generate_certificate_pdf(certificate_id: str):
+    """Génération certificat PDF SYNCHRONE."""
     try:
         cert = Certificate.objects.select_related('eleve', 'matiere', 'delivre_par').get(id=certificate_id)
 

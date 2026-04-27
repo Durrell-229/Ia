@@ -13,8 +13,8 @@ def run_plagiarism_check_view(request, exam_id):
         return HttpResponseForbidden()
     exam = get_object_or_404(Exam, id=exam_id)
     check = PlagiarismCheck.objects.create(exam=exam, declenche_par=request.user)
-    run_plagiarism_check.delay(str(check.id))
-    return JsonResponse({'check_id': str(check.id), 'status': 'started'})
+    run_plagiarism_check(str(check.id))
+    return JsonResponse({'check_id': str(check.id), 'status': 'completed'})
 
 
 @login_required

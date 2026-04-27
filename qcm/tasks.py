@@ -1,14 +1,12 @@
 import json
 import logging
-from celery import shared_task
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task
 def generate_qcm_from_course(cours_text: str, nb_questions: int, createur_id: str, matiere_id: str = None):
-    """Génère des questions QCM à partir d'un cours en utilisant l'IA."""
+    """Génère des questions QCM à partir d'un cours en utilisant l'IA - SYNCHRONE."""
     from accounts.models import User
     from core.models import Matiere
     from .models import QuestionBank, Choice

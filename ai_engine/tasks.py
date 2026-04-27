@@ -1,12 +1,11 @@
 import logging
-from celery import shared_task
 from correction.models import CorrectionCopie, StatutCorrection
 
 logger = logging.getLogger(__name__)
 
-@shared_task
+
 def process_ai_correction(correction_id, model_answer_path, student_pages_paths, instructions=""):
-    """Tâche de correction IA via le service dédié."""
+    """Correction IA SYNCHRONE via le service dédié."""
     try:
         correction = CorrectionCopie.objects.get(id=correction_id)
     except CorrectionCopie.DoesNotExist:

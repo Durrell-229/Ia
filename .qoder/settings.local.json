@@ -8,7 +8,8 @@
       "Bash(python:*)",
       "Bash(python3:*)",
       "Bash(chmod:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(rm:*)"
     ]
   }
 }

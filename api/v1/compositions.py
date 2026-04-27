@@ -85,10 +85,10 @@ def submit_composition(request, session_id: uuid.UUID):
         
     session.submit()
     
-    # Déclenchement de la correction IA
-    process_ai_correction.delay(str(session.id))
+    # Correction IA synchrone
+    process_ai_correction(str(session.id))
     
-    return {"message": "Examen soumis. Correction IA lancée.", "status": session.statut}
+    return {"message": "Examen soumis. Correction IA effectuée.", "status": session.statut}
 
 @router.post("/report-cheat/{session_id}")
 def report_cheat(request, session_id: uuid.UUID, data: CheatSchema):

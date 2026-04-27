@@ -50,8 +50,16 @@ def dashboard_gamification_view(request):
     except:
         classement = None
     
+    # Top 10 leaderboard pour le dashboard
+    classement_top_10 = GlobalLeaderboard.objects.filter(
+        periode='all_time'
+    ).order_by('-score_total')[:10]
+    
     # Niveau XP
     niveau = calcule_niveau_xp(xp_total)
+    
+    # Calculer récompense quotidienne
+    daily_reward_amount = 10 + (streak.streak_bonus_level * 5) if streak else 10
     
     context = {
         'streak': streak,
@@ -61,7 +69,9 @@ def dashboard_gamification_view(request):
         'total_badges': total_badges,
         'dernier_actions': dernier_actions,
         'classement': classement,
+        'classement_top_10': classement_top_10,
         'has_daily_reward': streak.has_daily_reward(),
+        'daily_reward_amount': daily_reward_amount,
     }
     
     return render(request, 'gamification/dashboard.html', context)
@@ -124,16 +134,17 @@ def details_badge_view(request, badge_id):
 @login_required
 def attribuer_badge_manuellement(request, badge_id):
     """Attribution manuelle par admin/professeur"""
-    if request.user.role not in ['admin', 'professeur']:
+    if not hasattr(request.user, 'role') or request.user.role not in ['admin', 'professeur']:
         return HttpResponseForbidden("Accès refusé")
     
     target_user_id = request.POST.get('user_id')
     if not target_user_id:
-        return redirect('gamification:listes_badges')
+        return redirect('gamification:liste_badges')
     
     try:
-        from django.contrib.auth.models import User as DjangoUser
-        target_user = DjangoUser.objects.get(id=target_user_id)
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        target_user = User.objects.get(id=target_user_id)
         badge = Badge.objects.get(id=badge_id)
         
         badge.atribuer_a_utilisateur(target_user)
@@ -145,7 +156,7 @@ def attribuer_badge_manuellement(request, badge_id):
         from django.contrib import messages
         messages.error(request, f"Erreur: {str(e)}")
     
-    return redirect('gamification:listes_badges')
+    return redirect('gamification:liste_badges')
 
 
 # ===========================================================================
@@ -189,14 +200,14 @@ def leaderboard_mondial_view(request):
 @login_required
 def leaderboard_classe_view(request):
     """Classement au sein de la classe de l'élève"""
-    if request.user.role != 'eleve':
-        return redirect('leaderboard_mondial')
+    if not hasattr(request.user, 'role') or request.user.role != 'eleve':
+        return redirect('gamification:leaderboard_mondial')
     
     classe = getattr(request.user, 'classe', None)
     if not classe:
         from django.contrib import messages
         messages.warning(request, "Votre classe n'est pas définie")
-        return redirect('dashboard_gamification')
+        return redirect('gamification:dashboard_gamification')
     
     entries = GlobalLeaderboard.objects.filter(
         user__composition_sessions__eleve=request.user,
@@ -342,7 +353,7 @@ def join_competition_view(request, competition_id):
     
     xp_action = XPAction.objects.create(
         user=request.user,
-        action_type="Inscription compétition",
+        action_type="participation_event",
         points_gagnes=10,
         description="Inscrit à la compétition",
         metadata={'competition_id': str(competition_id)}
@@ -392,8 +403,8 @@ def create_contribution_view(request):
         
         xp_action = XPAction.objects.create(
             user=request.user,
-            action_type="Contribution forum",
-            points_gaines=25,
+            action_type="contribution_forum",
+            points_gagnes=25,
             description="Publication dans le forum communautaire",
             metadata={'contribution_id': str(contribution.id)}
         )

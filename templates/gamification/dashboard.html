@@ -29,7 +29,7 @@
                     </div>
                 </div>
                 <div class="bg-white/20 rounded-full h-3 overflow-hidden">
-                    <div class="bg-white h-full rounded-full" style="width: {{ (xp_total | floatformat:0) | slice(':3') }}%"></div>
+                    <div class="bg-white h-full rounded-full" style="width: {{ xp_total|floatformat:0|slice:':3' }}%"></div>
                 </div>
                 <p class="text-xs mt-2 opacity-90">Niveau {{ niveau }}</p>
             </div>
@@ -51,7 +51,7 @@
                 
                 {% if has_daily_reward %}
                 <button onclick="claimReward()" class="mt-3 w-full bg-white text-orange-600 font-bold py-2 rounded-xl hover:bg-gray-100 transition">
-                    <i class="fas fa-gift mr-2"></i>Réclamer (+{{ 10 + streak.streak_bonus_level * 5 }} XP)
+                    <i class="fas fa-gift mr-2"></i>Réclamer (+{{ daily_reward_amount }} XP)
                 </button>
                 {% else %}
                 <div class="mt-3 text-xs opacity-75">Déjà réclamé aujourd'hui ✓</div>
@@ -69,7 +69,7 @@
                         <i class="fas fa-medal text-3xl"></i>
                     </div>
                 </div>
-                <a href="{% url 'gamification:listes_badges' %}" class="text-xs font-bold hover:underline">
+                <a href="{% url 'gamification:liste_badges' %}" class="text-xs font-bold hover:underline">
                     Voir tous les badges →
                 </a>
             </div>
@@ -113,7 +113,7 @@
                     <div class="bg-bg-secondary/50 rounded-2xl p-4 text-center border-2 border-accent/30 animate-pulse">
                         <div class="text-5xl mb-2">{{ user_badge.badge.icone }}</div>
                         <h3 class="font-bold text-white text-sm mb-1">{{ user_badge.badge.nom }}</h3>
-                        <p class="text-xs text-text-muted">{{ user_badge.get_obtenu_at|date:"d/m H:i" }}</p>
+                        <p class="text-xs text-text-muted">{{ user_badge.obtenu_at|date:"d/m H:i" }}</p>
                         {% if user_badge.est_nouveau %}
                         <span class="inline-block mt-2 px-2 py-1 bg-accent text-dark-bg text-xs font-bold rounded-lg">
                             NOUVEAU!
@@ -249,7 +249,7 @@ setTimeout(() => {
     const bonusPoints = document.getElementById('bonusPoints');
     
     streakCount.textContent = '{{ streak.current_streak }}';
-    bonusPoints.textContent = '{{ 10 + streak.streak_bonus_level * 5 }}';
+    bonusPoints.textContent = '{{ daily_reward_amount }}';
     
     modal.classList.remove('hidden');
     modal.classList.add('flex');

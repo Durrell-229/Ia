@@ -1,5 +1,4 @@
 import logging
-from celery import shared_task
 from django.utils import timezone
 from itertools import combinations
 
@@ -9,8 +8,8 @@ from compositions.models import CompositionSession, StudentAnswer
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=2)
-def run_plagiarism_check(self, check_id: str):
+def run_plagiarism_check(check_id: str):
+    """Détection de plagiat SYNCHRONE."""
     try:
         check = PlagiarismCheck.objects.select_related('exam').get(id=check_id)
         check.statut = PlagiarismCheck.Statut.EN_COURS
@@ -95,4 +94,5 @@ def run_plagiarism_check(self, check_id: str):
         return {"status": "success", "paires": nb_paires, "suspectes": nb_suspectes}
     except Exception as exc:
         PlagiarismCheck.objects.filter(id=check_id).update(statut=PlagiarismCheck.Statut.ERREUR)
-        raise self.retry(exc=exc, countdown=30)
+        logger.error(f"Erreur détection plagiat {check_id}: {exc}")
+        return {"status": "error", "error": str(exc)}

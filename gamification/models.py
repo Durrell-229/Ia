@@ -86,13 +86,12 @@ class Badge(models.Model):
         
         # Log action XP directement (pas de Celery)
         if log_action:
-            from django.contrib.auth.models import User as DjangoUser
             from .models import XPAction
             
             xp_action = XPAction.objects.create(
-                user=DjangoUser.objects.get(id=user.id),
-                action_type="Badge obtenu",
-                points_gaines=self.points_valeur,
+                user=user,
+                action_type="badge_obtenu",
+                points_gagnes=self.points_valeur,
                 description=f"Badge débloqué: {self.nom}",
                 metadata={'badge_id': str(self.id)}
             )
@@ -151,7 +150,7 @@ class GlobalLeaderboard(models.Model):
         ANNEE = 'annee', _('Annuel')
         ALL_TIME = 'all_time', _('Tous les temps')
 
-    class echelon(cls):
+    class Echelon(models.TextChoices):
         NOVICE = 'novice', _('Novice')
         APPRENTI = 'apprenti', _("Apprenti")
         ETUDIAN = 'etudiant', _('Étudiant')
@@ -215,19 +214,19 @@ class GlobalLeaderboard(models.Model):
     def get_classe_sociale(self):
         """Détermine la classe sociale selon l'échelle"""
         if self.score_total >= 50000:
-            return self.LEGENDE
+            return GlobalLeaderboard.Echelon.LEGENDE
         elif self.score_total >= 30000:
-            return self.SAGE
+            return GlobalLeaderboard.Echelon.SAGE
         elif self.score_total >= 15000:
-            return self.MAITRE
+            return GlobalLeaderboard.Echelon.MAITRE
         elif self.score_total >= 8000:
-            return self.EXPERT
+            return GlobalLeaderboard.Echelon.EXPERT
         elif self.score_total >= 3000:
-            return self.ETUDIENT
+            return GlobalLeaderboard.Echelon.ETUDIAN
         elif self.score_total >= 500:
-            return self.APPRENTI
+            return GlobalLeaderboard.Echelon.APPRENTI
         else:
-            return self.NOVICE
+            return GlobalLeaderboard.Echelon.NOVICE
 
 
 class XPAction(models.Model):
@@ -350,7 +349,6 @@ class StreakRecord(models.Model):
     
     def claim_daily_reward(self):
         """Réclame récompense quotidienne SANS Celery"""
-        from django.contrib.auth.models import User as DjangoUser
         from .models import XPAction
         
         base_points = 10 + (self.streak_bonus_level * 5)
@@ -358,9 +356,9 @@ class StreakRecord(models.Model):
         
         # Création journal XP directement dans la requête
         xp_action = XPAction.objects.create(
-            user=DjangoUser.objects.get(id=self.user_id),
-            action_type="Récompense quotidienne",
-            points_gaines=total_points,
+            user=self.user,
+            action_type="connexion",
+            points_gagnes=total_points,
             description=f"Bonus série {self.streak_bonus_level}x ({base_points} XP de base)",
             metadata={
                 'base': base_points,
@@ -429,14 +427,14 @@ class CommunityContribution(models.Model):
     """
     class Type(models.TextChoices):
         REPONSE_AIDE = 'reponse_aide', _('Réponse aide élève')
-        PARTAGE_RSSOURCE = 'partage Ressource', _('Partage ressource')
-        CREATION_CONTENU = 'contenu Créateur', _('Création contenu')
+        PARTAGE_RESSOURCE = 'partage_ressource', _('Partage ressource')
+        CREATION_CONTENU = 'creation_contenu', _('Création contenu')
         MODERATION = 'moderation', _('Modération')
         ORGANISATION_EVENT = 'organisation_event', _('Organisation événement')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     contributor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='contributions')
-    type_contribution = models.CharField(_('type'), max_length=20, choices=Type.TypeChoices)
+    type_contribution = models.CharField(_('type'), max_length=20, choices=Type.choices)
     titre = models.CharField(_('titre'), max_length=200)
     contenu = models.TextField(_('contenu'))
     

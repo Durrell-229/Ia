@@ -17,7 +17,6 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 DJANGO_APPS = [
-    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,8 +29,6 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'ninja',
     'corsheaders',
-    'django_celery_beat',
-    'django_celery_results',
 ]
 
 LOCAL_APPS = [
@@ -172,27 +169,6 @@ CORS_ALLOW_CREDENTIALS = True
 
 # WhiteNoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Channels & Redis
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [(os.environ.get('REDIS_HOST', 'localhost'), int(os.environ.get('REDIS_PORT', 6379)))],
-        },
-    },
-}
-
-# Celery
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
-CELERY_TASK_ALWAYS_EAGER = True  # Mode synchrone pour éviter les blocages sans Redis
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
 
 # AI Configuration
 AI_PROVIDER = os.environ.get('AI_PROVIDER', 'gemini')  # 'gemini', 'deepseek', or 'groq'

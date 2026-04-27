@@ -9,7 +9,7 @@
 
     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {% for badge in all_badges %}
-        {% if badge.id in earned_ids %}
+        {% if badge.id in badges_obtenus %}
         <div class="p-5 rounded-2xl bg-bg-card border-2 border-primary/30 hover-lift text-center">
             <div class="text-4xl mb-3">{{ badge.icone }}</div>
             <h3 class="font-bold text-sm mb-1">{{ badge.nom }}</h3>
@@ -21,7 +21,7 @@
                 {% else %}bg-bg-tertiary text-text-muted{% endif %}">
                 {{ badge.get_rarete_display }}
             </span>
-            <p class="text-xs text-success mt-2 font-medium">+{{ badge.points }} XP</p>
+            <p class="text-xs text-success mt-2 font-medium">+{{ badge.points_valeur }} XP</p>
         </div>
         {% else %}
         <div class="p-5 rounded-2xl bg-bg-primary border border-border-standard opacity-50 text-center">

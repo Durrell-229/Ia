@@ -1,5 +1,4 @@
 import logging
-from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
@@ -9,8 +8,8 @@ from .models import EmailQueue, Notification
 logger = logging.getLogger(__name__)
 
 
-@shared_task
 def send_notification_email(notification_id: str):
+    """Envoi email notification SYNCHRONE."""
     try:
         notif = Notification.objects.get(id=notification_id)
 
@@ -25,8 +24,8 @@ def send_notification_email(notification_id: str):
         logger.error(f"Erreur envoi email notification {notification_id}: {e}")
 
 
-@shared_task
 def process_email_queue():
+    """Traitement file d'attente email SYNCHRONE."""
     pending = EmailQueue.objects.filter(statut=EmailQueue.Statut.EN_ATTENTE, tentatives__lt=3)[:50]
     for email in pending:
         try:
@@ -63,8 +62,8 @@ def process_email_queue():
             email.save()
 
 
-@shared_task
 def create_and_send_notification(user_id: str, type_notif: str, titre: str, message: str, lien: str = ''):
+    """Création et envoi notification SYNCHRONE."""
     from accounts.models import User
     user = User.objects.get(id=user_id)
     notif = Notification.objects.create(
@@ -73,4 +72,4 @@ def create_and_send_notification(user_id: str, type_notif: str, titre: str, mess
         title=titre,
         message=message,
     )
-    send_notification_email.delay(str(notif.id))
+    send_notification_email(str(notif.id))

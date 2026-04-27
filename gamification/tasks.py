@@ -1,8 +1,7 @@
 """
-Celery Tasks pour Gamification - Calculs asynchrones et mises à jour massives
-Optimisé pour haute charge et grande communauté éducative
+Fonctions Gamification SYNCHRONES - Calculs et mises à jour
+Pour exécution immédiate dans les vues Django
 """
-from celery import shared_task
 from django.db.models import Avg, Count, Q, F
 from django.utils import timezone
 from datetime import timedelta, date
@@ -11,29 +10,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=3)
-def self(self):
-    """Task racine pour les computations gamification"""
-    pass
-
-
-@shared_task
 def award_xp_points(user_id, action, points, metadata=None):
     """
-    Attribue des points XP à un utilisateur avec journalisation
-    Inspiré: Duolingo (XP tracking), Coursera (achievement points)
-    
-    Args:
-        user_id: ID de l'utilisateur
-        action: Type d'action ('connexion', 'examen_finie', etc.)
-        points: Nombre de XP à attribuer
-        metadata: Données additionnelles (contexte)
+    Attribue des points XP à un utilisateur avec journalisation - SYNCHRONE
     """
     try:
-        from django.contrib.auth.models import User as DjangoUser
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         from .models import XPAction
         
-        user = DjangoUser.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
         
         # Création entry XP Action
         xp_action = XPAction.objects.create(
@@ -48,35 +34,29 @@ def award_xp_points(user_id, action, points, metadata=None):
         
         # Trigger update streak si action est connexion
         if action == 'connexion':
-            update_user_streak.delay(user_id)
+            update_user_streak(user_id)
         
         return {'success': True, 'xp_action_id': str(xp_action.id)}
         
     except Exception as exc:
         logger.error(f"[Gamification] Erreur award_xp_points: {exc}")
-        raise self.retry(exc=exc, countdown=60)
+        return {'success': False, 'error': str(exc)}
 
 
-@shared_task
 def award_badge_to_user(user_id, badge_id, log_xp=True):
     """
-    Attribue un badge à un utilisateur
-    Inspiré: Discord (role assignment), Duolingo (badge unlock animation)
-    
-    Args:
-        user_id: ID utilisateur
-        badge_id: ID badge
-        log_xp: Si True, ajoute XP correspondante au badge
+    Attribue un badge à un utilisateur - SYNCHRONE
     """
     try:
-        from django.contrib.auth.models import User as DjangoUser
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         from .models import UserBadge, Badge
         
-        user = DjangoUser.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
         badge = Badge.objects.get(id=badge_id)
         
         # Créer association user-badge
-        user_badge, created = UserBadge.objects.get_or_create(
+        userbadges, created = UserBadge.objects.get_or_create(
             user=user,
             badge=badge
         )
@@ -84,16 +64,13 @@ def award_badge_to_user(user_id, badge_id, log_xp=True):
         if created:
             logger.info(f"[Gamification] Badge '{badge.nom}' débloqué par {user.full_name}")
             
-            # Logger notification (future feature: email/push)
-            # TODO: Implémenter notifications
-            
             if log_xp:
                 # Ajouter XP du badge
-                award_xp_points.delay(
+                award_xp_points(
                     user_id=user_id,
-                    action=f"Badge obtenu: {badge.nom}",
+                    action="badge_obtenu",
                     points=badge.points_valeur,
-                    metadata={'badge_id': str(badge_id)}
+                    metadata={'badge_id': str(badge_id), 'badge_nom': badge.nom}
                 )
             
             return {'success': True, 'new_badge': created}
@@ -105,20 +82,16 @@ def award_badge_to_user(user_id, badge_id, log_xp=True):
         return {'success': False, 'error': str(e)}
 
 
-@shared_task
 def update_user_streak(user_id):
     """
-    Met à jour le streak quotidien d'un utilisateur
-    Optimisé pour éviter double comptage
-    
-    Args:
-        user_id: ID utilisateur
+    Met à jour le streak quotidien d'un utilisateur - SYNCHRONE
     """
     try:
-        from django.contrib.auth.models import User as DjangoUser
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         from .models import StreakRecord
         
-        user = DjangoUser.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
         streak, created = StreakRecord.objects.get_or_create(user=user)
         
         # Mise à jour streak logique
@@ -156,20 +129,16 @@ def update_user_streak(user_id):
         return {'success': False, 'error': str(e)}
 
 
-@shared_task
 def claim_daily_reward(user_id):
     """
-    Réclame la récompense quotidienne d'un utilisateur
-    Système inspiré de Duolingo (daily streak bonus)
-    
-    Args:
-        user_id: ID utilisateur
+    Réclame la récompense quotidienne d'un utilisateur - SYNCHRONE
     """
     try:
-        from django.contrib.auth.models import User as DjangoUser
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         from .models import StreakRecord
         
-        user = DjangoUser.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
         streak, created = StreakRecord.objects.get_or_create(user=user)
         
         if not streak.has_daily_reward():
@@ -179,9 +148,9 @@ def claim_daily_reward(user_id):
         total_points = int(base_points * streak.streak_multiplier)
         
         # Award XP
-        award_xp_points.delay(
+        award_xp_points(
             user_id=user_id,
-            action="Récompense quotidienne",
+            action="connexion",
             points=total_points,
             metadata={
                 'base': base_points,
@@ -207,22 +176,19 @@ def claim_daily_reward(user_id):
         return {'success': False, 'error': str(e)}
 
 
-@shared_task
 def calculate_leaderboard_positions(batch_size=1000):
     """
-    Calcule les positions du leaderboard pour tous les utilisateurs
-    Exécution planifiée toutes les heures via Celery Beat
-    
-    Optimisé pour performance sur grandes communautés
+    Calcule les positions du leaderboard pour tous les utilisateurs - SYNCHRONE
     """
     try:
-        from django.contrib.auth.models import User as DjangoUser
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         from .models import GlobalLeaderboard
         
         logger.info("[Gamification] Démarrage calcul leaderboard...")
         
         # Récupérer tous les utilisateurs avec activité récente
-        users = DjangoUser.objects.filter(
+        users = User.objects.filter(
             composition_sessions__isnull=False
         ).distinct()[:batch_size]
         
@@ -238,12 +204,12 @@ def calculate_leaderboard_positions(batch_size=1000):
                 avg_score = sum(score[0]/score[1]*20 for score in scores) / scores.count()
                 nb_compositions = scores.count()
                 excellent_notes = scores.filter(
-                    Q(note__gte='16', note_sur='20.00')
+                    Q(note__gte=16, note_sur=20)
                 ).count()
                 
                 # Calcul XP total
                 xp_total = sum(
-                    action.points_gaines 
+                    action.points_gagnes 
                     for action in user.xp_actions.all()
                 )
                 
@@ -291,10 +257,10 @@ def calculate_leaderboard_positions(batch_size=1000):
                 
                 updated_count += 1
         
-        logger.success(f"[Gamification] Leaderboard mis à jour: {updated_count} utilisateurs")
+        logger.info(f"[Gamification] Leaderboard mis à jour: {updated_count} utilisateurs")
         
         # Recalculer les rangs
-        recalculate_leaderboard_ranks.delay()
+        recalculate_leaderboard_ranks()
         
         return {'success': True, 'users_updated': updated_count}
         
@@ -303,14 +269,13 @@ def calculate_leaderboard_positions(batch_size=1000):
         return {'success': False, 'error': str(e)}
 
 
-@shared_task
 def recalculate_leaderboard_ranks():
     """
-    Recalcule les rangs mondiaux et nationaux après mise à jour des scores
-    Utilise window functions SQL pour performance
+    Recalcule les rangs mondiaux et nationaux après mise à jour des scores - SYNCHRONE
     """
     try:
-        from django.contrib.auth.models import User as DjangoUser
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         from .models import GlobalLeaderboard
         
         logger.info("[Gamification] Recalcul des rangs leaderboard...")
@@ -324,7 +289,7 @@ def recalculate_leaderboard_ranks():
         
         GlobalLeaderboard.objects.bulk_update(entries, ['rang_mondial', 'classement_actuel'])
         
-        logger.success(f"[Gamification] Rang recalculé pour {entries.count()} entrées")
+        logger.info(f"[Gamification] Rang recalculé pour {entries.count()} entrées")
         
         return {'success': True, 'entries_updated': entries.count()}
         
@@ -333,16 +298,13 @@ def recalculate_leaderboard_ranks():
         return {'success': False, 'error': str(e)}
 
 
-@shared_task
 def check_badge_conditions_periodically():
     """
-    Vérifie périodiquement les conditions d'obtention de badges
-    Exécution toutes les heures via Celery Beat
-    
-    Inspiré: Coursera (completion checks), Duolingo (milestone tracking)
+    Vérifie périodiquement les conditions d'obtention de badges - SYNCHRONE
     """
     try:
-        from django.contrib.auth.models import User as DjangoUser
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         from .models import Badge, UserBadge
         
         logger.info("[Gamification] Vérification conditions badges...")
@@ -365,10 +327,10 @@ def check_badge_conditions_periodically():
                 
                 if not already_obtained:
                     # Attribuer le badge
-                    award_badge_to_user.delay(user.id, badge.id, log_xp=True)
+                    award_badge_to_user(user.id, badge.id, log_xp=True)
                     awarded_count += 1
         
-        logger.success(f"[Gamification] Badges vérifiés: {awarded_count} nouveaux débloqués")
+        logger.info(f"[Gamification] Badges vérifiés: {awarded_count} nouveaux débloqués")
         
         return {'success': True, 'newly_awarded': awarded_count}
         
@@ -377,55 +339,37 @@ def check_badge_conditions_periodically():
         return {'success': False, 'error': str(e)}
 
 
-# ===========================================================================
-# Fonctions Utilitaires
-# ===========================================================================
-
-def get_eligible_users_for_badge(badge):
+def cleanup_stale_records():
     """
-    Détermine quels utilisateurs sont éligibles pour un badge donné
-    Basé sur les conditions dans condition_obtention JSON
-    
-    Exemples de conditions:
-    - {'compositions': 10, 'type': 'minimum'}
-    - {'moyenne_min': 15, 'type': 'average'}
-    - {'streak_min': 7, 'type': 'streak'}
-    """
-    from django.contrib.auth.models import User as DjangoUser
-    from django.db.models import Avg, Count, Q
-    
-    conditions = badge.condition_obtention or {}
-    query = Q()
-    
-    # Condition compositions
-    if 'compositions' in conditions:
-        min_compositions = conditions['compositions']
-        query &= Q(composition_sessions__id__gt=min_compositions)
-    
-    # Condition moyenne
-    if 'moyenne_min' in conditions:
-        min_avg = conditions['moyenne_min']
-        # À implémenter: filtre selon moyenne réelle
-    
-    # Condition streak
-    if 'streak_min' in conditions:
-        min_streak = conditions['streak_min']
-        # À implémenter: filtre streak records
-    
-    # Récupérer utilisateurs éligibles
-    users = DjangoUser.objects.filter(query).distinct()[:1000]
-    
-    return users
-
-
-@shared_task
-def generate_weekly_leaderboard_summary():
-    """
-    Génère un résumé hebdomadaire du leaderboard pour newsletter/communique
-    Exécution chaque lundi matin
+    Nettoie les anciens enregistrements obsolètes - SYNCHRONE
     """
     try:
-        from django.contrib.auth.models import User as DjangoUser
+        from .models import XPAction, StreakRecord
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        logger.info("[Gamification] Démarrage nettoyage des anciens enregistrements...")
+        
+        # Supprimer XP actions de plus de 1 an
+        one_year_ago = timezone.now() - timedelta(days=365)
+        deleted_xp = XPAction.objects.filter(created_at__lt=one_year_ago).delete()[0]
+        
+        logger.info(f"[Gamification] Nettoyage terminé: {deleted_xp} anciennes actions XP supprimées")
+        
+        return {'success': True, 'deleted_xp_actions': deleted_xp}
+        
+    except Exception as e:
+        logger.error(f"[Gamification] Erreur cleanup_stale_records: {e}")
+        return {'success': False, 'error': str(e)}
+
+
+def generate_weekly_leaderboard_summary():
+    """
+    Génère un résumé hebdomadaire du leaderboard - SYNCHRONE
+    """
+    try:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         from .models import GlobalLeaderboard
         
         start_of_week = date.today() - timedelta(days=date.today().weekday())
@@ -458,3 +402,39 @@ def generate_weekly_leaderboard_summary():
     except Exception as e:
         logger.error(f"[Gamification] Erreur weekly_summary: {e}")
         return {'success': False, 'error': str(e)}
+
+
+# ===========================================================================
+# Fonctions Utilitaires
+# ===========================================================================
+
+def get_eligible_users_for_badge(badge):
+    """
+    Détermine quels utilisateurs sont éligibles pour un badge donné
+    """
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    from django.db.models import Avg, Count, Q
+    
+    conditions = badge.condition_obtention or {}
+    query = Q()
+    
+    # Condition compositions
+    if 'compositions' in conditions:
+        min_compositions = conditions['compositions']
+        query &= Q(composition_sessions__id__gt=min_compositions)
+    
+    # Condition moyenne
+    if 'moyenne_min' in conditions:
+        min_avg = conditions['moyenne_min']
+        # À implémenter: filtre selon moyenne réelle
+    
+    # Condition streak
+    if 'streak_min' in conditions:
+        min_streak = conditions['streak_min']
+        # À implémenter: filtre streak records
+    
+    # Récupérer utilisateurs éligibles
+    users = User.objects.filter(query).distinct()[:1000]
+    
+    return users

@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════════════════
+# 🚀 Académie Numérique IA - Environment Configuration
+# ═══════════════════════════════════════════════════════════
+# Copiez ce fichier en .env: cp .env.example .env
+
+# --- DJANGO CORE ---
+DJANGO_SECRET_KEY=change-this-to-a-very-long-random-string-abc123xyz
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.com
+
+# --- DATABASE (mysql, postgresql, or sqlite3) ---
+DB_ENGINE=mysql
+DB_NAME=academie_numerique
+DB_USER=root
+DB_PASSWORD=your-database-password
+DB_HOST=localhost
+DB_PORT=3306
+
+# For PostgreSQL:
+# DB_ENGINE=postgresql
+# DATABASE_URL=postgres://user:password@localhost:5432/academie_numerique
+
+# --- REDIS & CELERY ---
+REDIS_HOST=localhost
+REDIS_PORT=6379
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+# --- AI PROVIDERS (Multi-provider with fallback) ---
+# Options: groq, gemini, mistral, deepseek
+AI_PROVIDER=groq
+GROQ_API_KEY=your-groq-api-key
+GEMINI_API_KEY=your-gemini-api-key
+MISTRAL_API_KEY=your-mistral-api-key
+DEEPSEEK_API_KEY=your-deepseek-api-key
+
+# --- ROLE PASSWORDS ---
+ROLE_PASSWORD_ADMIN=admin2025
+ROLE_PASSWORD_CP=cp2026
+ROLE_PASSWORD_PROF=prof2026
+
+# --- EMAIL (SMTP) ---
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+DEFAULT_FROM_EMAIL=Académie Numérique <noreply@academie-numerique.com>
+
+# --- SECURITY (Production) ---
+# CSRF_TRUSTED_ORIGINS=https://your-domain.com
+# SECURE_SSL_REDIRECT=True
+# SESSION_COOKIE_SECURE=True
+# CSRF_COOKIE_SECURE=True
