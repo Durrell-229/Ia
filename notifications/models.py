@@ -325,3 +325,36 @@ class EmailQueue(models.Model):
     def peut_retry(self):
         """Vérifie si on peut encore réessayer l'envoi"""
         return self.tentatives < self.max_tentatives and self.statut != self.Statut.ANNULE
+
+
+class GlobalAnnouncement(models.Model):
+    """
+    Annonce globale visible par tous les utilisateurs
+    """
+    class TypeAlerte(models.TextChoices):
+        INFORMATION = 'info', _('Information ℹ️')
+        AVERTISSEMENT = 'warning', _('Avertissement ⚠️')
+        URGENCE = 'urgent', _('Urgence 🚨')
+        MAINTENANCE = 'maintenance', _('Maintenance 🔧')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    titre = models.CharField(_('titre'), max_length=200)
+    message = models.TextField(_('message'))
+
+    type_alerte = models.CharField(_('type'), max_length=20, choices=TypeAlerte.choices, default=TypeAlerte.INFORMATION)
+
+    est_actif = models.BooleanField(_('actif'), default=True)
+    date_expiration = models.DateTimeField(_('date expiration'), null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='annonces_creees')
+
+    class Meta:
+        verbose_name = _('annonce globale')
+        verbose_name_plural = _('annonces globales')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.get_type_alerte_display()}] {self.titre}"
