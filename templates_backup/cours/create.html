@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 glass rounded-2xl text-white">
+    <h2 class="text-3xl font-bold mb-6">Créer un Nouveau Cours</h2>
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-bold mb-2">Titre du Cours</label>
+            <input type="text" name="title" required class="w-full p-3 bg-bg-secondary rounded-lg border border-bg-tertiary">
+        </div>
+        <div>
+            <label class="block text-sm font-bold mb-2">Matière</label>
+            <select name="matiere" class="w-full p-3 bg-bg-secondary rounded-lg border border-bg-tertiary text-white">
+                {% for code, label in matiere_choices %}
+                    <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-bold mb-2">Classe</label>
+            <select name="classe" class="w-full p-3 bg-bg-secondary rounded-lg border border-bg-tertiary text-white">
+                {% for niveau, choices in classe_choices %}
+                    <optgroup label="{{ niveau }}">
+                        {% for code, label in choices %}
+                            <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-bold mb-2">Description</label>
+            <textarea name="description" rows="5" class="w-full p-3 bg-bg-secondary rounded-lg border border-bg-tertiary"></textarea>
+        </div>
+        <button type="submit" class="w-full py-4 bg-button-gradient font-bold rounded-lg hover:opacity-90">Soumettre pour approbation</button>
+    </form>
+</div>
+{% endblock %}

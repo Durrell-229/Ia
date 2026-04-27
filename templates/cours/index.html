@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Cours - Académie IA{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{% url 'dashboard' %}" class="hover:text-primary transition text-text-secondary">Dashboard</a> / <span class="text-text-primary font-bold">Catalogue des Cours</span>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tighter">Mes <span class="text-primary italic">Cours</span></h1>
+            <p class="text-text-secondary font-medium">Explorez les ressources pédagogiques de votre établissement.</p>
+        </div>
+        {% if user.role == 'professeur' or user.role == 'admin' %}
+        <a href="{% url 'cours:create' %}" class="bg-button-gradient px-8 py-4 rounded-2xl font-black text-xs text-white shadow-xl shadow-primary/20 hover:scale-105 transition uppercase tracking-widest">
+            Nouveau Cours
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for c in courses %}
+        <div class="bg-bg-secondary rounded-[2.5rem] border border-bg-tertiary overflow-hidden group hover:border-primary/30 transition-all hover:-translate-y-1 shadow-2xl">
+            <div class="aspect-video bg-bg-primary relative overflow-hidden">
+                {% if c.thumbnail %}
+                <img src="{{ c.thumbnail.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-bg-secondary to-bg-tertiary">
+                    <i class="fa-solid fa-graduation-cap text-5xl text-bg-tertiary"></i>
+                </div>
+                {% endif %}
+                <div class="absolute top-4 left-4 bg-primary/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+                    {{ c.matiere.nom }}
+                </div>
+            </div>
+            
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-[10px] font-black text-accent uppercase tracking-widest">{{ c.get_difficulty_display }}</span>
+                    <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">• {{ c.estimated_time }}</span>
+                </div>
+                <h3 class="text-xl font-black text-white tracking-tight mb-4 group-hover:text-primary transition-colors">{{ c.title }}</h3>
+                <p class="text-text-muted text-sm font-medium line-clamp-2 mb-8">{{ c.description }}</p>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-[10px] font-bold text-white uppercase">{{ c.creator.first_name|slice:":1" }}</div>
+                        <span class="text-xs font-bold text-text-secondary">{{ c.creator.get_full_name }}</span>
+                    </div>
+                    <a href="{% url 'cours:detail' c.id %}" class="w-10 h-10 rounded-xl bg-bg-tertiary flex items-center justify-center text-white hover:bg-primary transition shadow-sm">
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center">
+            <p class="text-text-muted italic">Aucun cours disponible.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

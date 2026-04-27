@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% block title %}Accueil Communauté - Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary py-8 px-4">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header Principal -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-4xl md:text-5xl font-black text-white mb-3">
+                        <i class="fas fa-users text-accent mr-3"></i>
+                        Bienvenue sur l'Académie Numérique
+                    </h1>
+                    <p class="text-lg text-text-muted max-w-2xl">
+                        Rejoignez une communauté éducative mondiale en constante évolution. Apprenez, progressez, partagez!
+                    </p>
+                </div>
+                
+                <!-- Stats live community -->
+                <div class="flex gap-4 text-sm bg-bg-card backdrop-blur-sm rounded-2xl p-4 border border-border-standard">
+                    <div class="text-center px-4 border-r border-border-standard">
+                        <p class="font-black text-accent text-xl">10K+</p>
+                        <p class="text-xs text-text-muted">Élèves</p>
+                    </div>
+                    <div class="text-center px-4 border-r border-border-standard">
+                        <p class="font-black text-green-400 text-xl">50K+</p>
+                        <p class="text-xs text-text-muted">Examens</p>
+                    </div>
+                    <div class="text-center px-4">
+                        <p class="font-black text-yellow-400 text-xl">200K+</p>
+                        <p class="text-xs text-text-muted">XP distribuées</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section Actions Rapides -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            
+            <a href="{% url 'qcm:start' %}" class="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/25 transition-all duration-300 group hover:-translate-y-1">
+                <i class="fas fa-clipboard-check text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <h3 class="font-bold text-lg mb-1">QCM IA</h3>
+                <p class="text-sm opacity-90">Testez vos connaissances</p>
+            </a>
+            
+            <a href="{% url 'exams:list' %}" class="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-3xl p-6 text-white shadow-lg shadow-purple-500/25 transition-all duration-300 group hover:-translate-y-1">
+                <i class="fas fa-book-open text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <h3 class="font-bold text-lg mb-1">Examens</h3>
+                <p class="text-sm opacity-90">Consultez les épreuves</p>
+            </a>
+            
+            <a href="#" class="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-3xl p-6 text-white shadow-lg shadow-orange-500/25 transition-all duration-300 group hover:-translate-y-1">
+                <i class="fas fa-users text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <h3 class="font-bold text-lg mb-1">Communauté</h3>
+                <p class="text-sm opacity-90">Forum &entraide</p>
+            </a>
+            
+            <a href="{% url 'gamification:dashboard_gamification' %}" class="bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-3xl p-6 text-white shadow-lg shadow-green-500/25 transition-all duration-300 group hover:-translate-y-1">
+                <i class="fas fa-trophy text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <h3 class="font-bold text-lg mb-1">Ma Progression</h3>
+                <p class="text-sm opacity-90">Suivez votre avancée</p>
+            </a>
+        </div>
+        
+        <!-- Dashboard Personnel Utilisateur -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Ma Carte Perso Gamification -->
+            <div class="lg:col-span-2 bg-gradient-to-br from-[#1a365d] to-[#2d5a87] rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
+                <!-- Background decorative elements -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+                <div class="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl"></div>
+                
+                <div class="relative z-10">
+                    <!-- En-tête carte -->
+                    <div class="flex justify-between items-start mb-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-3xl font-black">
+                                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-black">{{ user.first_name }} {{ user.last_name }}</h2>
+                                <p class="text-sm opacity-80">Niveau {{ niveau_xp }} • {{ user.role|title }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Streak Fire -->
+                        <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center">
+                            <div class="text-3xl mb-1">🔥</div>
+                            <div class="text-2xl font-black">{{ streak.current_streak }}</div>
+                            <div class="text-xs opacity-75">Jours</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bars -->
+                    <div class="space-y-4 mb-6">
+                        <!-- XP Progress -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium">XP Totale</span>
+                                <span class="text-sm font-bold">{{ xp_total }} / {{ xp_next_level }} XP</span>
+                            </div>
+                            <div class="bg-white/20 rounded-full h-3 overflow-hidden">
+                                <div class="bg-gradient-to-r from-yellow-400 to-orange-500 h-full rounded-full transition-all duration-500" style="width: {% widthratio xp_total xp_next_level 100 %}%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Badges Progress -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium">Badges Obtus</span>
+                                <span class="text-sm font-bold">{{ total_badges }}/50</span>
+                            </div>
+                            <div class="bg-white/20 rounded-full h-3 overflow-hidden">
+                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full transition-all duration-500" style="width: {% widthratio total_badges 50 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Boutons d'action rapide -->
+                    <div class="flex gap-3">
+                        <a href="{% url 'gamification:leaderboard_mondial' %}" class="flex-1 bg-white text-[#1a365d] font-bold py-3 px-6 rounded-xl hover:bg-gray-100 transition text-center">
+                            <i class="fas fa-chart-line mr-2"></i>Voir Classement
+                        </a>
+                        <a href="{% url 'gamification:listes_badges' %}" class="flex-1 bg-white/10 backdrop-blur-sm text-white font-bold py-3 px-6 rounded-xl hover:bg-white/20 transition text-center">
+                            <i class="fas fa-medal mr-2"></i>Tous Mes Badges
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Apprentis Semaine -->
+            <div class="bg-bg-card backdrop-blur-sm rounded-3xl p-6 border border-border-standard">
+                <h3 class="font-black text-white text-xl mb-4 flex items-center">
+                    <i class="fas fa-fire text-orange-400 mr-2"></i>
+                    En Vedette Cette Semaine
+                </h3>
+                
+                <div class="space-y-3">
+                    {% for top_user in top_apprentis %}
+                    <div class="flex items-center gap-3 p-3 bg-bg-secondary/50 rounded-xl hover:bg-bg-secondary transition">
+                        <div class="text-lg font-bold text-accent">{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}#{{ forloop.counter }}{% endif %}</div>
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white text-xs font-bold">
+                            {{ top_user.user.first_name|slice:":1" }}{{ top_user.user.last_name|slice:":1" }}
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-white text-sm">{{ top_user.user.full_name }}</p>
+                            <p class="text-xs text-text-muted">{{ top_user.streak }} jours</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-accent text-sm">{{ top_user.xp_weekly }} XP</p>
+                            <p class="text-xs text-text-muted">cette semaine</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 text-text-muted text-sm">
+                        <i class="fas fa-user-slash text-3xl mb-2"></i><br>Aucune donnée disponible
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <a href="{% url 'gamification:leaderboard_mondial' %}" class="block mt-4 text-center text-accent text-sm font-bold hover:underline">
+                    Voir le classement complet →
+                </a>
+            </div>
+        </div>
+        
+        <!-- Section Actualités & Activity Feed -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            
+            <!-- Recent Achievements -->
+            <div class="bg-bg-card backdrop-blur-sm rounded-3xl p-6 border border-border-standard">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-black text-white text-xl flex items-center">
+                        <i class="fas fa-bell text-yellow-400 mr-2"></i>
+                        Réalisations Récentes
+                    </h3>
+                    <span class="text-xs text-text-muted bg-bg-secondary px-3 py-1 rounded-full">{{ recent_activities|length }} événements</span>
+                </div>
+                
+                <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    {% for activity in recent_activities %}
+                    <div class="flex gap-3 p-3 bg-bg-secondary/50 rounded-xl border border-border-standard/50">
+                        <div class="bg-accent/20 p-2 rounded-lg">
+                            {% if activity.type == 'badge' %}<i class="fas fa-medal text-accent"></i>
+                            {% elif activity.type == 'streak' %}<i class="fas fa-fire text-orange-400"></i>
+                            {% elif activity.type == 'exam' %}<i class="fas fa-check-circle text-green-400"></i>
+                            {% else %}<i class="fas fa-star text-yellow-400"></i>{% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-white">{{ activity.message }}</p>
+                            <p class="text-xs text-text-muted">{{ activity.timestamp|timesince }} il y a</p>
+                        </div>
+                        {% if activity.badge %}
+                        <div class="text-2xl">{{ activity.badge.icone }}</div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 text-text-muted text-sm">
+                        <i class="fas fa-inbox text-3xl mb-2"></i><br>Rien de nouveau pour le moment
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Challenges Actuels -->
+            <div class="bg-bg-card backdrop-blur-sm rounded-3xl p-6 border border-border-standard">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-black text-white text-xl flex items-center">
+                        <i class="fas fa-bullseye text-blue-400 mr-2"></i>
+                        Défis du Moment
+                    </h3>
+                    <a href="#" class="text-xs text-accent font-bold hover:underline">Voir tous</a>
+                </div>
+                
+                <div class="space-y-4">
+                    
+                    <!-- Challenge 1 -->
+                    <div class="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-l-4 border-blue-500 rounded-2xl p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-bold text-white mb-1">Série de 7 Jours</h4>
+                                <p class="text-sm text-text-muted">Connectez-vous 7 jours consécutifs</p>
+                            </div>
+                            <span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-1 rounded-lg">+50 XP</span>
+                        </div>
+                        <div class="bg-white/10 rounded-full h-2 overflow-hidden">
+                            <div class="bg-blue-500 h-full rounded-full" style="width: {% if streak.current_streak >= 7 %}100{% elif streak.current_streak >= 3 %}50{% else %}25{% endif %}%"></div>
+                        </div>
+                        <p class="text-xs text-text-muted mt-2">{{ streak.current_streak }}/7 jours complétés</p>
+                    </div>
+                    
+                    <!-- Challenge 2 -->
+                    <div class="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-l-4 border-purple-500 rounded-2xl p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-bold text-white mb-1">Premier Badge</h4>
+                                <p class="text-sm text-text-muted">Débloquez votre premier badge</p>
+                            </div>
+                            <span class="bg-purple-500/20 text-purple-400 text-xs font-bold px-2 py-1 rounded-lg">Badge Uniquement</span>
+                        </div>
+                        <div class="bg-white/10 rounded-full h-2 overflow-hidden">
+                            <div class="bg-purple-500 h-full rounded-full" style="width: {% if total_badges > 0 %}100{% else %}0{% endif %}%"></div>
+                        </div>
+                        <p class="text-xs text-text-muted mt-2">{% if total_badges > 0 %}Félicitations! Badge obtenu ✓{% else %}Continuez à apprendre...{% endif %}</p>
+                    </div>
+                    
+                    <!-- Challenge 3 -->
+                    <div class="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-l-4 border-orange-500 rounded-2xl p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-bold text-white mb-1">Top 100 Mondial</h4>
+                                <p class="text-sm text-text-muted">Entrez dans le top 100 mondial</p>
+                            </div>
+                            <span class="bg-orange-500/20 text-orange-400 text-xs font-bold px-2 py-1 rounded-lg">Badge Légendaire</span>
+                        </div>
+                        <div class="bg-white/10 rounded-full h-2 overflow-hidden">
+                            <div class="bg-orange-500 h-full rounded-full" style="width: {% if classement and classement.rang_mondial <= 100 %}100{% elif classement and classement.rang_mondial <= 500 %}50{% else %}10{% endif %}%"></div>
+                        </div>
+                        <p class="text-xs text-text-muted mt-2">Actuellement #{% if classement %}{{ classement.rang_mondial }}{% else %}--{% endif %}</p>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer motivation -->
+        <div class="bg-gradient-to-r from-accent/20 via-primary/20 to-success/20 rounded-3xl p-8 border border-accent/30">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-6">
+                    <div class="bg-accent/20 p-4 rounded-2xl">
+                        <i class="fas fa-rocket text-4xl text-accent"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-2xl mb-2">Prêt à Atteindre les Sommets?</h3>
+                        <p class="text-text-muted">Rejoignez des milliers d'apprentis qui transforment leur éducation quotidiennement.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <a href="{% url 'qcm:start' %}" class="bg-accent hover:bg-accent-hover text-dark-bg font-bold px-8 py-4 rounded-xl transition shadow-lg shadow-accent/25">
+                        <i class="fas fa-play mr-2"></i>Démarrer Maintenant
+                    </a>
+                    <a href="#learn-more" class="bg-white/10 hover:bg-white/20 text-white font-bold px-8 py-4 rounded-xl transition border border-white/30">
+                        En savoir plus
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Toast Notifications Container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<script>
+// Afficher toast notification si nouveau badge
+{% if badges_recents %}
+setTimeout(() => {
+    const badge = '{{ badges_recents.0.badge.nom }}';
+    showToast(`Nouveau badge débloqué: ${badge}! 🏆`, 'success');
+}, 1000);
+{% endif %}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    
+    const colors = {
+        info: 'bg-blue-500',
+        success: 'bg-green-500',
+        warning: 'bg-yellow-500',
+        error: 'bg-red-500'
+    };
+    
+    toast.className = `${colors[type]} text-white px-6 py-4 rounded-2xl shadow-xl transform transition-all duration-300 translate-x-full`;
+    toast.innerHTML = `
+        <div class="flex items-center gap-3">
+            <i class="fas ${getIcon(type)}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Animation entry
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Auto remove
+    setTimeout(() => {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+function getIcon(type) {
+    const icons = {
+        info: 'fas fa-info-circle',
+        success: 'fas fa-check-circle',
+        warning: 'fas fa-exclamation-circle',
+        error: 'fas fa-times-circle'
+    };
+    return icons[type] || icons.info;
+}
+</script>
+{% endblock %}

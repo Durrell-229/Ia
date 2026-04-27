@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Créer une épreuve - Académie Numérique{% endblock %}
+{% block content %}
+<div class="p-6 max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold">Créer une épreuve</h1>
+        <p class="text-slate-500 dark:text-slate-400">Configurez votre composition ou examen</p>
+    </div>
+
+    <form method="post" action="/api/exams/create" class="space-y-6 p-6 rounded-2xl bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border" x-data="{ type: 'composition' }" onsubmit="event.preventDefault(); createExam(this);">
+        {% csrf_token %}
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Titre</label>
+                <input type="text" name="titre" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Description</label>
+                <textarea name="description" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Type</label>
+                <select name="type_exam" x-model="type" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+                    <option value="composition">Composition</option>
+                    <option value="examen">Examen</option>
+                    <option value="devoir">Devoir</option>
+                    <option value="concours">Concours</option>
+                    <option value="eval_prof">Évaluation Professeur</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Matière</label>
+                <select name="matiere_id" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+                    <option value="">-- Choisir --</option>
+                    {% for m in matieres %}
+                    <option value="{{ m.id }}">{{ m.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Classe (optionnel)</label>
+                <select name="classe_id" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+                    <option value="">-- Choisir --</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Durée (minutes)</label>
+                <input type="number" name="duree_minutes" value="60" min="5" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Date de début</label>
+                <input type="datetime-local" name="date_debut" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Date de fin</label>
+                <input type="datetime-local" name="date_fin" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Note maximale</label>
+                <input type="number" name="note_maximale" value="20" step="0.5" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Coefficient</label>
+                <input type="number" name="coefficient" value="1" step="0.5" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition">
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Instructions</label>
+                <textarea name="instructions" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-dark-bg border border-slate-300 dark:border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition"></textarea>
+            </div>
+
+            <div class="md:col-span-2 flex items-center gap-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="anti_cheat_active" checked class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary">
+                    <span class="text-sm text-slate-700 dark:text-slate-300">Anti-triche actif</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="camera_required" checked class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary">
+                    <span class="text-sm text-slate-700 dark:text-slate-300">Caméra obligatoire</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="fullscreen_required" checked class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary">
+                    <span class="text-sm text-slate-700 dark:text-slate-300">Plein écran</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 dark:border-dark-border flex items-center gap-4">
+            <button type="submit" class="px-8 py-3 rounded-xl gradient-bg text-white font-semibold hover:opacity-90 transition shadow-lg shadow-primary/30">
+                Créer l'épreuve
+            </button>
+            <a href="{% url 'exam_list' %}" class="px-6 py-3 rounded-xl border border-slate-300 dark:border-dark-border text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-bg transition">
+                Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+function createExam(form) {
+    const data = Object.fromEntries(new FormData(form));
+    data.anti_cheat_active = !!data.anti_cheat_active;
+    data.camera_required = !!data.camera_required;
+    data.fullscreen_required = !!data.fullscreen_required;
+
+    fetch('/api/exams/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.href = '{% url "exam_list" %}';
+        } else {
+            alert(data.error || 'Erreur');
+        }
+    });
+}
+</script>
+{% endblock %}

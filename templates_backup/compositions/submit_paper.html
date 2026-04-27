@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Soumettre ma Copie - Académie IA{% endblock %}
+
+{% block breadcrumb %}Examen / Soumission Papier{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-8 border-b border-gray-100 bg-indigo-50">
+            <h2 class="text-2xl font-bold text-gray-900">Soumission de Copie</h2>
+            <p class="text-sm text-gray-600 mt-2">
+                Prenez en photo les pages de votre copie. Assurez-vous que le texte est bien lisible et que la luminosité est suffisante.
+            </p>
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+            {% csrf_token %}
+            
+            <div x-data="{ files: [] }" class="space-y-4">
+                <label class="block text-sm font-bold text-gray-700">Vos pages (Photos/Images)</label>
+                
+                <div 
+                    class="relative flex flex-col items-center justify-center border-2 border-dashed border-indigo-200 bg-indigo-50/30 rounded-2xl p-10 transition-all hover:bg-indigo-50 hover:border-indigo-400 group"
+                >
+                    <i class="fa-solid fa-camera text-5xl mb-4 text-indigo-400 group-hover:scale-110 transition-transform"></i>
+                    <p class="text-sm text-indigo-700 font-semibold">Ajouter des photos de ma copie</p>
+                    <p class="text-xs text-gray-500 mt-1 italic">Plusieurs fichiers autorisés</p>
+                    
+                    <input 
+                        type="file" 
+                        name="copies" 
+                        multiple 
+                        accept="image/*" 
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        @change="files = Array.from($event.target.files)"
+                    >
+                </div>
+
+                <!-- Preview simple -->
+                <template x-if="files.length > 0">
+                    <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <p class="text-xs font-bold text-gray-500 uppercase mb-3">Fichiers sélectionnés (<span x-text="files.length"></span>)</p>
+                        <div class="grid grid-cols-4 gap-2">
+                            <template x-for="(file, index) in files" :key="index">
+                                <div class="aspect-square bg-white rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
+                                    <i class="fa-solid fa-image text-gray-300"></i>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:shadow-indigo-200 transition-all transform active:scale-95 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Envoyer ma copie pour correction IA
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100 flex gap-3">
+        <i class="fa-solid fa-triangle-exclamation text-yellow-600 mt-1"></i>
+        <p class="text-xs text-yellow-700 leading-relaxed">
+            <strong>Attention :</strong> Une fois la copie envoyée, vous ne pourrez plus la modifier. L'IA commencera l'analyse immédiatement après l'envoi.
+        </p>
+    </div>
+</div>
+{% endblock %}

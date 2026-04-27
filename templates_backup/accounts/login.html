@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-6 relative overflow-hidden bg-[#0F172A]">
+    <!-- Orbes en arrière-plan -->
+    <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px]"></div>
+
+    <div class="glass max-w-md w-full p-10 rounded-[3rem] border border-white/5 relative z-10">
+        <div class="text-center mb-10">
+            <span class="text-3xl font-black italic tracking-tighter">AN <span class="text-primary">IA</span></span>
+            <h2 class="text-2xl font-black mt-6 tracking-tight">Content de vous revoir.</h2>
+            <p class="text-slate-400 text-sm font-medium mt-2">Entrez vos identifiants pour accéder au portail.</p>
+        </div>
+
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-2xl text-sm font-bold {% if message.tags %}{% if 'error' in message.tags %}bg-red-500/20 border border-red-500/30 text-red-200{% elif 'success' in message.tags %}bg-green-500/20 border border-green-500/30 text-green-200{% else %}bg-blue-500/20 border border-blue-500/30 text-blue-200{% endif %}{% else %}bg-blue-500/20 border border-blue-500/30 text-blue-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Email académique</label>
+                <input type="email" name="email" required class="w-full bg-slate-800/50 border border-white/20 rounded-2xl px-6 py-4 text-white focus:border-primary focus:ring-1 focus:ring-primary transition shadow-inner placeholder:text-slate-500" placeholder="nom@etablissement.com">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Mot de passe</label>
+                <input type="password" name="password" required class="w-full bg-slate-800/50 border border-white/20 rounded-2xl px-6 py-4 text-white focus:border-primary focus:ring-1 focus:ring-primary transition shadow-inner placeholder:text-slate-500" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="w-full bg-button-gradient py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                Se connecter
+            </button>
+        </form>
+
+        <div class="mt-10 text-center">
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                Pas encore de compte ? 
+                <a href="{% url 'register' %}" class="text-primary hover:text-white transition">S'inscrire</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

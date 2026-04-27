@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Mes Certificats - Académie Numérique{% endblock %}
+{% block content %}
+<div class="p-6 max-w-5xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold">Mes Certificats</h1>
+        <p class="text-text-muted">Vos certifications numériques vérifiables mondialement</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for cert in certificates %}
+        <div class="p-6 rounded-2xl bg-bg-card border border-border-standard hover-lift">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center">
+                    <span class="text-2xl">
+                        {% if cert.type_certificat == 'excellence' %}🏆{% elif cert.type_certificat == 'mention' %}🎖️{% elif cert.type_certificat == 'competence' %}📋{% else %}📜{% endif %}
+                    </span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm">{{ cert.titre }}</h3>
+                    <p class="text-xs text-text-muted">{{ cert.get_type_certificat_display }}</p>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-sm mb-4">
+                {% if cert.note_obtenue %}
+                <div class="flex justify-between">
+                    <span class="text-text-muted">Note</span>
+                    <span class="font-bold text-primary">{{ cert.note_obtenue }}/{{ cert.note_sur }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <span class="text-text-muted">Délivré le</span>
+                    <span>{{ cert.date_delivrance|date:"d/m/Y" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-text-muted">Statut</span>
+                    <span class="{% if cert.statut == 'actif' %}text-success{% else %}text-danger{% endif %}">{{ cert.get_statut_display }}</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <a href="{% url 'verify_certificate' cert.code_verification %}" class="flex-1 text-center px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition">Vérifier</a>
+                {% if cert.pdf %}
+                <a href="{{ cert.pdf.url }}" target="_blank" class="flex-1 text-center px-3 py-2 rounded-lg gradient-bg text-white text-xs font-medium hover:opacity-90 transition">PDF</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="md:col-span-3 text-center py-16">
+            <div class="w-16 h-16 rounded-full bg-border-standard flex items-center justify-center mx-auto mb-4">
+                <span class="text-3xl">📜</span>
+            </div>
+            <p class="text-text-muted">Aucun certificat obtenu pour le moment.</p>
+            <p class="text-sm text-text-muted mt-1">Composez des examens pour gagner des certificats !</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

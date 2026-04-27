@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}Salle de Capture - {{ exam.titre }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto" x-data="cameraHandler()">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-white">{{ exam.titre }}</h1>
+            <p class="text-slate-400">Mode : Composition sur papier - Capture directe</p>
+        </div>
+        <div class="text-right">
+            <div class="text-2xl font-mono text-primary" id="timer">00:00:00</div>
+            <p class="text-xs text-slate-500">Temps restant</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Zone Caméra -->
+        <div class="glass p-6 rounded-2xl">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fas fa-camera mr-3 text-accent"></i> Caméra en direct
+            </h2>
+            <div class="relative aspect-[3/4] bg-black rounded-lg overflow-hidden border-2 border-slate-700">
+                <video id="video" class="w-full h-full object-cover" autoplay playsinline></video>
+                <div class="absolute inset-0 border-2 border-primary/30 pointer-events-none flex items-center justify-center">
+                    <div class="w-4/5 h-4/5 border border-white/20 rounded"></div>
+                </div>
+            </div>
+            <div class="mt-6 flex gap-4">
+                <button @click="takePhoto()" class="flex-1 bg-primary hover:bg-secondary py-4 rounded-xl font-bold flex items-center justify-center transition">
+                    <i class="fas fa-camera mr-2"></i> Capturer la page <span x-text="nextPage"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Zone Aperçu et Validation -->
+        <div class="glass p-6 rounded-2xl flex flex-col">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fas fa-images mr-3 text-success"></i> Pages capturées
+            </h2>
+            <div class="flex-1 overflow-y-auto space-y-4 pr-2 max-h-[500px]">
+                <template x-for="(photo, index) in photos" :key="index">
+                    <div class="relative group">
+                        <img :src="photo" class="w-full rounded-lg border border-slate-700">
+                        <div class="absolute top-2 left-2 bg-black/50 px-2 py-1 rounded text-xs">Page <span x-text="index + 1"></span></div>
+                        <button @click="removePhoto(index)" class="absolute top-2 right-2 bg-red-500 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                </template>
+                <div x-show="photos.length === 0" class="h-40 border-2 border-dashed border-slate-700 rounded-xl flex flex-center items-center justify-center text-slate-500">
+                    Aucune page capturée
+                </div>
+            </div>
+            <button @click="submitAll()" x-show="photos.length > 0" class="mt-6 w-full bg-success hover:bg-emerald-600 py-4 rounded-xl font-bold flex items-center justify-center transition shadow-lg shadow-success/20">
+                <i class="fas fa-check-double mr-2"></i> Soumettre la copie complète
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function cameraHandler() {
+    return {
+        stream: null,
+        photos: [],
+        nextPage: 1,
+        async init() {
+            try {
+                this.stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                });
+                document.getElementById('video').srcObject = this.stream;
+            } catch (err) {
+                alert("Erreur caméra : " + err.message);
+            }
+        },
+        takePhoto() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            this.photos.push(canvas.toDataURL('image/jpeg', 0.8));
+            this.nextPage++;
+        },
+        removePhoto(index) {
+            this.photos.splice(index, 1);
+            this.nextPage = this.photos.length + 1;
+        },
+        async submitAll() {
+            if(!confirm("Es-tu sûr de vouloir soumettre ta copie pour correction ?")) return;
+            
+            try {
+                // 1. Démarrer/Récupérer la session
+                const examId = "{{ exam.id }}";
+                const startRes = await fetch(`/api/v1/compositions/${examId}/start`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': this.getCookie('csrftoken') }
+                });
+                const startData = await startRes.json();
+                const sessionId = startData.session_id;
+
+                // 2. Upload de chaque page capturée
+                for(let i=0; i < this.photos.length; i++) {
+                    const formData = new FormData();
+                    const res = await fetch(this.photos[i]);
+                    const blob = await res.blob();
+                    formData.append('file', blob, `page_${i+1}.jpg`);
+                    formData.append('page_number', i+1);
+
+                    await fetch(`/api/v1/compositions/upload-page/${sessionId}`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-CSRFToken': this.getCookie('csrftoken') }
+                    });
+                }
+
+                // 3. Soumission finale
+                const finalRes = await fetch(`/api/v1/compositions/submit/${sessionId}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': this.getCookie('csrftoken') }
+                });
+                
+                if(finalRes.ok) {
+                    alert("Copie soumise avec succès ! L'IA va maintenant corriger votre travail.");
+                    window.location.href = "/exams/success/";
+                }
+            } catch (err) {
+                alert("Une erreur est survenue lors de la soumission : " + err.message);
+            }
+        },
+        getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    }
+}
+document.addEventListener('alpine:init', () => {
+    // Initialisation auto via x-init ou manuelle
+});
+</script>
+{% endblock %}

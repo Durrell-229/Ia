@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto p-6 glass rounded-xl">
+    <h2 class="text-2xl font-bold mb-4">Générer un QCM (IA)</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <!-- Champs texte pour une saisie manuelle libre -->
+        <input type="text" name="topic" placeholder="Sujet du cours (ex: Fractions)" required class="w-full p-3 bg-bg-secondary rounded-lg border border-bg-tertiary">
+        <input type="text" name="matiere_nom" placeholder="Matière (ex: Mathématiques)" required class="w-full p-3 bg-bg-secondary rounded-lg border border-bg-tertiary">
+        <input type="text" name="grade" placeholder="Classe (ex: 4ème)" required class="w-full p-3 bg-bg-secondary rounded-lg border border-bg-tertiary">
+        <button type="submit" class="w-full py-3 bg-button-gradient font-bold rounded-lg hover:opacity-90">Générer avec IA</button>
+    </form>
+</div>
+{% endblock %}

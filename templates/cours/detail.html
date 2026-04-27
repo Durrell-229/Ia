@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% if course.status == 'pending' and not user.is_superuser %}
+        {% include 'partials/pending_approval.html' %}
+    {% else %}
+        <h1 class="text-3xl font-bold">{{ course.title }}</h1>
+        <p>{{ course.description }}</p>
+        
+        {% if user.is_staff %}
+            <div class="mt-6">
+                <a href="{% url 'cours:create_qcm' course.id %}" class="px-6 py-3 bg-button-gradient font-bold rounded-lg hover:opacity-90 transition-all">
+                    <i class="fa-solid fa-robot mr-2"></i>Générer un QCM par IA
+                </a>
+            </div>
+        {% endif %}
+        
+        <!-- Contenu réel du cours -->
+    {% endif %}
+{% endblock %}

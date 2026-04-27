@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Mes Corrections - Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <h1 class="text-3xl font-black text-white px-2">Corrections et Résultats</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for result in results %}
+        <div class="glass p-6 rounded-3xl border-b-4 border-primary hover:scale-[1.02] transition-transform">
+            <div class="flex justify-between items-start mb-4">
+                <span class="bg-primary/20 text-primary text-[10px] font-black uppercase px-2 py-1 rounded">IA Certifiée</span>
+                <div class="text-2xl font-black text-white">{{ result.note }}<span class="text-xs text-text-muted">/20</span></div>
+            </div>
+            <h3 class="text-lg font-bold text-text-secondary mb-1">{{ result.session.exam.titre }}</h3>
+            <p class="text-xs text-text-muted mb-6">Élève: {{ result.session.eleve.full_name }}</p>
+            <a href="{% url 'correction:detail' result.session.id %}" class="block text-center border border-border-standard hover:bg-bg-tertiary py-3 rounded-xl font-bold text-text-secondary transition">
+                Voir l'analyse
+            </a>
+        </div>
+        {% empty %}
+        <p class="col-span-full text-center text-text-muted py-20">Aucun résultat disponible.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

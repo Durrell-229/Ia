@@ -1,0 +1,409 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen pt-20 pb-8">
+    <!-- Container principal -->
+    <div class="container mx-auto px-4 max-w-4xl">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <i class="fa-solid fa-gear text-purple-600"></i>
+                Paramètres de Notifications
+            </h1>
+            <p class="text-gray-500 mt-1">Personnalisez vos préférences de notifications intelligentes</p>
+        </div>
+        
+        <!-- Main content -->
+        <div class="bg-white rounded-2xl shadow-lg divide-y divide-gray-200">
+            
+            <!-- Section 1: Type de notifications -->
+            <div class="p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+                    Types de notifications
+                </h2>
+                
+                <p class="text-sm text-gray-500 mb-4">Activez ou désactivez les notifications par catégorie.</p>
+                
+                <div class="space-y-3">
+                    {% for type_choice in notification_type.choices %}
+                    <label class="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg hover:border-purple-300 transition-all cursor-pointer" 
+                           data-type="{{ type_choice|first }}">
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-900 flex items-center gap-2">
+                                {{ type_choice.last }}
+                                <input type="hidden" name="enable_{{ type_choice|first }}" value="0">
+                                <input type="checkbox" name="enable_{{ type_choice|first }}" 
+                                       value="1"
+                                       class="sr-only peer notification-type-toggle"
+                                       data-type="{{ type_choice|first }}">
+                               
+                               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </div>
+                            <div class="text-xs text-gray-500">Recevoir des alertes pour {{ type_choice.last|lower }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Section 2: Sons et alertes -->
+            <div class="p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+                    Sons & Alertes visuelles
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- Sons notifications -->
+                    <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg hover:border-purple-300 transition-all cursor-pointer">
+                        <div>
+                            <div class="font-semibold text-gray-900 flex items-center gap-2">
+                                <i class="fa-solid fa-volume-high text-purple-600"></i>
+                                Sons de notification
+                            </div>
+                            <div class="text-sm text-gray-500">Jouer un son lors de la réception d'une notification</div>
+                        </div>
+                        
+                        <input type="checkbox" name="son_notifications" value="1"
+                               {% if settings.son_notifications %}checked{% endif %}
+                               class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                    </label>
+                    
+                    <!-- Mode Do Not Disturb -->
+                    <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg hover:border-yellow-300 transition-all cursor-pointer">
+                        <div>
+                            <div class="font-semibold text-gray-900 flex items-center gap-2">
+                                <i class="fa-solid fa-moon text-yellow-600"></i>
+                                Mode Ne pas déranger
+                            </div>
+                            <div class="text-sm text-gray-500">Aucune interruption pendant les heures définies</div>
+                        </div>
+                        
+                        <input type="checkbox" name="do_not_disturb" value="1"
+                               {% if settings.do_not_disturb %}checked{% endif %}
+                               onchange="toggleDNDSettings()"
+                               class="w-5 h-5 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500">
+                    </label>
+                    
+                    <!-- Heures DND (caché par défaut) -->
+                    <div id="dndSettings" class="{% unless settings.do_not_disturb %}hidden{% endunless %} space-y-3 ml-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Heure début</label>
+                                <input type="time" name="dnd_start_time" value="{{ settings.dnd_start_time|default:"22:00" }}" 
+                                       class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-yellow-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Heure fin</label>
+                                <input type="time" name="dnd_end_time" value="{{ settings.dnd_end_time|default:"07:00" }}"
+                                       class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-yellow-500">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sons silencieux spécifiques heures -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Début silence (hh:mm)</label>
+                            <input type="time" name="son_silencieux_heures" value="{{ settings.son_silencieux_heures|default:'22:00' }}"
+                                   class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Fin silence (hh:mm)</label>
+                            <input type="time" name="son_heures_reprise" value="{{ settings.son_heures_reprise|default:'07:00' }}"
+                                   class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: Notifications push navigateur -->
+            <div class="p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-sm font-bold">3</span>
+                    Notifications Push Navigateur
+                </h2>
+                
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-500">Recevoir des notifications même quand votre navigateur est fermé.</p>
+                    
+                    <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg hover:border-green-300 transition-all cursor-pointer">
+                        <div>
+                            <div class="font-semibold text-gray-900 flex items-center gap-2">
+                                <i class="fa-solid fa-bell text-green-600"></i>
+                                Activer les push notifications
+                            </div>
+                            <div class="text-sm text-gray-500">Notifications hors ligne sur tous appareils</div>
+                        </div>
+                        
+                        <input type="checkbox" name="push_enabled" value="1"
+                               {% if settings.push_enabled %}checked{% endif %}
+                               onchange="registerServiceWorker()"
+                               class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                    </label>
+                    
+                    <!-- Bouton tester push -->
+                    <button onclick="testPushNotification()"
+                            class="inline-flex items-center gap-2 px-4 py-2 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-all">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Tester ma notification push
+                    </button>
+                    
+                    {% if request.user.is_authenticated %}
+                    <!-- Instructions pour souscrire -->
+                    <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm text-blue-700 font-semibold mb-2">Pour activer les push:</p>
+                        <ol class="text-xs text-blue-600 space-y-1 list-decimal list-inside">
+                            <li>Cliquez sur "Activer les push notifications"</li>
+                            <li>Acceptez la permission dans votre navigateur</li>
+                            <li>Vérifiez que Chrome/Safari/Firefox est autorisé</li>
+                        </ol>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Section 4: Email notifications -->
+            <div class="p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-sm font-bold">4</span>
+                    Résumés par email
+                </h2>
+                
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-all cursor-pointer">
+                        <input type="checkbox" name="email_digest_daily" value="1"
+                               {% if settings.email_digest_daily %}checked{% endif %}
+                               class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-900">Résumé quotidien</div>
+                            <div class="text-sm text-gray-500">Un email chaque matin avec vos notifications de la veille</div>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-all cursor-pointer">
+                        <input type="checkbox" name="email_digest_weekly" value="1"
+                               {% if settings.email_digest_weekly %}checked{% endif %}
+                               class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-900">Résumé hebdomadaire</div>
+                            <div class="text-sm text-gray-500">Un récapitulat chaque dimanche soir</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Section 5: Gestion automatique -->
+            <div class="p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-sm font-bold">5</span>
+                    Nettoyage automatique
+                </h2>
+                
+                <div class="space-y-4">
+                    <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg hover:border-red-300 transition-all cursor-pointer">
+                        <div>
+                            <div class="font-semibold text-gray-900 flex items-center gap-2">
+                                <i class="fa-solid fa-trash text-red-600"></i>
+                                Suppression auto après lecture
+                            </div>
+                            <div class="text-sm text-gray-500">Effacer automatiquement les notifications lues après X minutes</div>
+                        </div>
+                        
+                        <input type="checkbox" name="auto_dismiss_unread" value="1"
+                               {% if settings.auto_dismiss_unread %}checked{% endif %}
+                               class="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                    </label>
+                    
+                    <div id="autoDismissTimeDiv" class="{% unless settings.auto_dismiss_unread %}hidden{% endunless %} ml-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Durée avant suppression (minutes)</label>
+                        <select name="auto_dismiss_minutes" 
+                                class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-red-500">
+                            <option value="300" {% if settings.auto_dismiss_minutes == 300 %}selected{% endif %}>5 minutes</option>
+                            <option value="600" {% if settings.auto_dismiss_minutes == 600 %}selected{% endif %}>10 minutes</option>
+                            <option value="1800" {% if settings.auto_dismiss_minutes == 1800 %}selected{% endif %}>30 minutes</option>
+                            <option value="3600" {% if settings.auto_dismiss_minutes == 3600 %}selected{% endif %}>1 heure</option>
+                            <option value="86400" {% if settings.auto_dismiss_minutes == 86400 %}selected{% endif %}>24 heures</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions finales -->
+            <div class="p-6 bg-gray-50 flex gap-3 justify-end">
+                <a href="{% url 'notification_list' %}" 
+                   class="inline-flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                    Annuler
+                </a>
+                <form method="post" action="{% url 'notification_settings' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 font-bold shadow-lg transition-all transform hover:-translate-y-0.5">
+                        <i class="fa-solid fa-save"></i>
+                        Enregistrer les paramètres
+                    </button>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Scripts JavaScript -->
+<script>
+// Gérer DND toggle
+function toggleDNDSettings() {
+    const checkbox = document.querySelector('input[name="do_not_disturb"]');
+    const settingsDiv = document.getElementById('dndSettings');
+    
+    if (checkbox.checked) {
+        settingsDiv.classList.remove('hidden');
+    } else {
+        settingsDiv.classList.add('hidden');
+    }
+}
+
+// Auto dismiss toggle
+document.querySelector('input[name="auto_dismiss_unread"]').addEventListener('change', function() {
+    const div = document.getElementById('autoDismissTimeDiv');
+    if (this.checked) {
+        div.classList.remove('hidden');
+    } else {
+        div.classList.add('hidden');
+    }
+});
+
+// Inscrire service worker pour push notifications
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            
+            // Demander permission
+            const permission = await Notification.requestPermission();
+            
+            if (permission === 'granted') {
+                // Souscription VAPID
+                const sub = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array('YOUR_VAPID_PUBLIC_KEY_HERE')
+                });
+                
+                // Envoyer subscription au backend
+                fetch('/api/push/subscribe/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(sub)
+                });
+                
+                showToast('Succès! Notifications push activées.', 'success');
+            }
+        } catch (err) {
+            console.error('Erreur SW:', err);
+            showToast('Erreur activation push notifications.', 'error');
+        }
+    } else {
+        alert('Votre navigateur ne supporte pas les notifications push.');
+    }
+}
+
+// Fonction helper convertir VAPID key
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+    
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+// Test notification push locale
+function testPushNotification() {
+    if (!('Notification' in window)) {
+        alert('Votre navigateur ne supporte pas les notifications.');
+        return;
+    }
+    
+    Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+            new Notification('Test Notification!', {
+                body: 'Ceci est une notification de test.',
+                icon: '{% static "icons/icon-192x192.png" %}'
+            });
+            
+            showToast('Notification de test envoyée!', 'success');
+        }
+    });
+}
+
+// Afficher toast
+function showToast(message, type = 'info') {
+    const colors = {
+        success: 'bg-green-600',
+        error: 'bg-red-600',
+        info: 'bg-blue-600'
+    };
+    
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-4 rounded-xl shadow-2xl z-50 animate-slide-in`;
+    toast.style.animation = 'slideInFromRight 0.4s ease-out';
+    
+    toast.innerHTML = `
+        <div class="flex items-center gap-3">
+            <i class="fa-solid ${icons[type]} text-xl"></i>
+            <span class="font-medium">${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.transition = 'all 0.3s ease-out';
+        toast.style.transform = 'translateY(-100%)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Toggle type selection visuelle
+function toggleType(type) {
+    const checkbox = document.querySelector(`input[name="enable_${type}"]`);
+    const label = checkbox.closest('label');
+    
+    if (checkbox.checked) {
+        label.classList.remove('hover:border-gray-300');
+        label.classList.add('hover:border-green-300');
+    } else {
+        label.classList.remove('hover:border-green-300');
+        label.classList.add('hover:border-gray-300');
+    }
+}
+</script>
+
+<style>
+.switch-relative {
+    position: relative;
+}
+</style>
+{% endblock %}

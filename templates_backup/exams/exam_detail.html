@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ exam.titre }} | Détails | Académie IA{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
+        <a href="{% url 'exam_list' %}" class="hover:text-primary transition">Banque d'Examens</a>
+        <span class="mx-3">/</span>
+        <span class="text-white">Détails de l'épreuve</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <!-- Colonne Gauche : Infos Principales -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="glass p-12 rounded-[3.5rem] border border-white/5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-[60px] -mr-20 -mt-20"></div>
+                
+                <div class="relative z-10">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-8">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-primary">{{ exam.get_type_exam_display }}</span>
+                    </div>
+
+                    <h1 class="text-5xl font-black text-white tracking-tighter mb-6 leading-tight">{{ exam.titre }}</h1>
+                    
+                    <div class="flex flex-wrap gap-6 text-sm font-medium text-text-secondary mb-10">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-book-open text-primary"></i>
+                            {{ exam.matiere.nom }}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-users text-accent"></i>
+                            {{ exam.classe.nom|default:"Tous Niveaux" }}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-clock text-warning"></i>
+                            {{ exam.duree_minutes }} Minutes
+                        </div>
+                    </div>
+
+                    <div class="prose prose-invert max-w-none">
+                        <h3 class="text-lg font-bold text-white mb-4">Instructions de l'épreuve</h3>
+                        <p class="text-text-secondary leading-relaxed whitespace-pre-line">
+                            {{ exam.instructions|default:"Aucune instruction spécifique fournie pour cet examen. Veuillez vous concentrer et respecter le temps imparti." }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fichiers Attachés -->
+            <div class="glass p-10 rounded-[3rem] border border-white/5">
+                <h3 class="text-xl font-bold mb-8 flex items-center gap-3">
+                    <i class="fa-solid fa-paperclip text-primary"></i>
+                    Ressources de l'examen
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {% for f in exam.files.all %}
+                    <div class="bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center justify-between group hover:border-primary/30 transition">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-bg-tertiary rounded-xl flex items-center justify-center text-primary">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white line-clamp-1">{{ f.nom_original }}</p>
+                                <p class="text-[10px] text-text-muted uppercase font-black">{{ f.get_type_fichier_display }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ f.fichier.url }}" target="_blank" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <i class="fa-solid fa-download text-xs"></i>
+                        </a>
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-text-muted italic">Aucun fichier attaché.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne Droite : Statut & Action -->
+        <div class="space-y-8">
+            <!-- Card Statut -->
+            <div class="bg-button-gradient p-1 rounded-[3rem] shadow-2xl shadow-primary/20">
+                <div class="bg-[#0F172A] rounded-[2.9rem] p-10 flex flex-col items-center text-center">
+                    <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-6 border border-primary/20">
+                        <i class="fa-solid fa-rocket text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-black mb-2">Prêt pour le départ ?</h3>
+                    <p class="text-sm text-text-secondary mb-10">Assurez-vous d'avoir une connexion stable et que votre caméra est activée.</p>
+                    
+                    {% if user.role == 'eleve' %}
+                        <a href="{% url 'composition_room' exam.id %}" class="w-full bg-button-gradient py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/30 hover:scale-105 transition-all">
+                            Lancer l'Examen
+                        </a>
+                    {% else %}
+                        <div class="w-full space-y-4">
+                            <div class="w-full bg-white/5 border border-white/10 py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] text-text-muted">
+                                Mode Aperçu (Professeur)
+                            </div>
+                            <a href="{% url 'qcm_create' exam.id %}" class="w-full block text-center bg-indigo-600 hover:bg-indigo-700 py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-500/30 transition-all">
+                                <i class="fa-solid fa-robot mr-2"></i>Générer QCM IA
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Card Sécurité -->
+            <div class="glass p-8 rounded-[2.5rem] border border-white/5">
+                <h4 class="text-xs font-black uppercase tracking-widest text-text-muted mb-6">Protocole de Sécurité</h4>
+                <ul class="space-y-4">
+                    <li class="flex items-center gap-3 text-xs text-text-secondary">
+                        <i class="fa-solid fa-shield-halved text-success"></i>
+                        Anti-Cheat Biométrique Actif
+                    </li>
+                    <li class="flex items-center gap-3 text-xs text-text-secondary">
+                        <i class="fa-solid fa-expand text-success"></i>
+                        Plein Écran Obligatoire
+                    </li>
+                    <li class="flex items-center gap-3 text-xs text-text-secondary">
+                        <i class="fa-solid fa-video text-success"></i>
+                        Surveillance Vidéo Continue
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass {
+        background: rgba(30, 41, 59, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+</style>
+{% endblock %}

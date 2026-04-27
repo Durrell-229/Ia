@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Documents - Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-white mb-2">
+                <i class="fa-solid fa-folder-open text-primary mr-2"></i>
+                Documents & Fichiers
+            </h1>
+            <p class="text-text-secondary">Stockez, partagez et téléchargez vos documents</p>
+        </div>
+        <a href="{% url 'documents:document_upload' %}" class="px-6 py-3 bg-button-gradient text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg shadow-primary/25">
+            <i class="fa-solid fa-upload mr-2"></i>Uploader
+        </a>
+    </div>
+
+    <!-- My Documents -->
+    <div class="glass rounded-xl p-6 mb-8">
+        <h2 class="text-xl font-bold text-white mb-4">
+            <i class="fa-solid fa-file text-primary mr-2"></i>Mes Documents
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for doc in my_docs %}
+            <a href="{% url 'documents:document_detail' doc.id %}" class="bg-bg-tertiary/50 rounded-xl p-4 hover:bg-bg-tertiary transition border border-border-standard">
+                <div class="text-center">
+                    <i class="fa-solid fa-file-{{ doc.file_type|default:'pdf' }} text-4xl text-primary mb-3"></i>
+                    <h3 class="text-sm font-semibold text-white truncate">{{ doc.title }}</h3>
+                    <p class="text-xs text-text-muted mt-1">{{ doc.file_size_display }}</p>
+                    <p class="text-xs text-text-muted"><i class="fa-solid fa-download mr-1"></i>{{ doc.download_count }}</p>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-text-muted col-span-4 text-center py-8">Aucun document</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Public Documents -->
+    {% if public_docs %}
+    <div class="glass rounded-xl p-6">
+        <h2 class="text-xl font-bold text-white mb-4">
+            <i class="fa-solid fa-globe text-success mr-2"></i>Documents Publics
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for doc in public_docs %}
+            <a href="{% url 'documents:document_detail' doc.id %}" class="bg-bg-tertiary/50 rounded-xl p-4 hover:bg-bg-tertiary transition border border-border-standard">
+                <div class="text-center">
+                    <i class="fa-solid fa-file-{{ doc.file_type|default:'pdf' }} text-4xl text-success mb-3"></i>
+                    <h3 class="text-sm font-semibold text-white truncate">{{ doc.title }}</h3>
+                    <p class="text-xs text-text-muted mt-1">Par {{ doc.owner.full_name }}</p>
+                    <p class="text-xs text-text-muted"><i class="fa-solid fa-download mr-1"></i>{{ doc.download_count }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

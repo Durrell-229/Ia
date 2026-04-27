@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}QCM - {{ exam.titre }}{% endblock %}
+{% block extra_head %}
+<style>
+    .qcm-option { transition: all 0.2s ease; }
+    .qcm-option:hover { transform: translateX(4px); }
+    .qcm-option.selected { border-color: #6366F1; background: rgba(99, 102, 241, 0.1); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="p-6 max-w-4xl mx-auto" x-data="qcmApp()" x-init="init()">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-xl font-bold">{{ exam.titre }}</h1>
+            <p class="text-sm text-text-muted">Question <span x-text="currentIndex + 1"></span> / <span x-text="questions.length"></span></p>
+        </div>
+        <div class="text-right">
+            <p class="text-2xl font-bold gradient-text" x-text="formatTime(timeLeft)"></p>
+        </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="w-full h-2 rounded-full bg-border-standard mb-8">
+        <div class="h-2 rounded-full gradient-bg transition-all" :style="`width: ${((currentIndex + 1) / questions.length) * 100}%`"></div>
+    </div>
+
+    <!-- Question -->
+    <template x-if="questions.length > 0 && currentIndex < questions.length">
+        <div class="p-6 rounded-2xl bg-bg-card border border-border-standard">
+            <h2 class="text-lg font-bold mb-6" x-text="questions[currentIndex].texte"></h2>
+            <div class="space-y-3">
+                <template x-for="choice in questions[currentIndex].choices" :key="choice.id">
+                    <button @click="selectChoice(choice.id)"
+                            class="qcm-option w-full text-left p-4 rounded-xl border border-border-standard hover:border-primary/50 flex items-center gap-3"
+                            :class="{'selected border-primary bg-primary/5': selectedChoices.includes(choice.id)}">
+                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0"
+                             :class="selectedChoices.includes(choice.id) ? 'border-primary bg-primary text-white' : 'border-border-standard'">
+                            <svg x-show="selectedChoices.includes(choice.id)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <span x-text="choice.texte" class="flex-1"></span>
+                    </button>
+                </template>
+            </div>
+
+            <div class="mt-6 flex items-center justify-between">
+                <button @click="prevQuestion()" :disabled="currentIndex === 0"
+                        class="px-4 py-2 rounded-xl border border-border-standard text-sm font-medium hover:bg-bg-tertiary transition disabled:opacity-30">
+                    Précédent
+                </button>
+                <button @click="nextQuestion()"
+                        class="px-6 py-2 rounded-xl gradient-bg text-white text-sm font-medium hover:opacity-90 transition"
+                        x-text="currentIndex < questions.length - 1 ? 'Suivant' : 'Terminer'">
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Results -->
+    <div x-show="finished" class="text-center py-12">
+        <div class="w-20 h-20 rounded-full gradient-bg flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/30">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h2 class="text-2xl font-bold mb-2">QCM terminé !</h2>
+        <p class="text-text-muted mb-2">Score : <span class="font-bold text-primary" x-text="score"></span> points</p>
+        <p class="text-text-muted mb-6">Réponses correctes : <span class="font-bold text-success" x-text="correctCount"></span> / <span x-text="questions.length"></span></p>
+        <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-xl gradient-bg text-white font-medium hover:opacity-90 transition">Retour au dashboard</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function qcmApp() {
+    return {
+        questions: {{ questions_json|safe }},
+        currentIndex: 0,
+        selectedChoices: [],
+        answers: {},
+        timeLeft: {{ exam.duree_minutes }} * 60,
+        finished: false,
+        score: 0,
+        correctCount: 0,
+        timerInterval: null,
+
+        init() {
+            this.loadCurrentChoices();
+            this.timerInterval = setInterval(() => {
+                if (this.timeLeft > 0) this.timeLeft--;
+                else this.finish();
+            }, 1000);
+        },
+
+        loadCurrentChoices() {
+            const q = this.questions[this.currentIndex];
+            this.selectedChoices = this.answers[q?.id] || [];
+        },
+
+        selectChoice(choiceId) {
+            const idx = this.selectedChoices.indexOf(choiceId);
+            if (idx >= 0) this.selectedChoices.splice(idx, 1);
+            else this.selectedChoices.push(choiceId);
+            this.answers[this.questions[this.currentIndex].id] = [...this.selectedChoices];
+        },
+
+        prevQuestion() {
+            if (this.currentIndex > 0) {
+                this.currentIndex--;
+                this.loadCurrentChoices();
+            }
+        },
+
+        nextQuestion() {
+            this.submitCurrent();
+            if (this.currentIndex < this.questions.length - 1) {
+                this.currentIndex++;
+                this.loadCurrentChoices();
+            } else {
+                this.finish();
+            }
+        },
+
+        submitCurrent() {
+            const q = this.questions[this.currentIndex];
+            fetch('/qcm/submit-answer/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || this.getCookie('csrftoken')},
+                body: JSON.stringify({
+                    session_id: '{{ session.id }}',
+                    question_id: q.id,
+                    selected_choices: this.selectedChoices,
+                    time_spent: 0,
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.correct) this.correctCount++;
+                this.score += data.points || 0;
+            });
+        },
+
+        finish() {
+            clearInterval(this.timerInterval);
+            this.finished = true;
+        },
+
+        formatTime(s) {
+            return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+        },
+
+        getCookie(name) {
+            let v = null;
+            if (document.cookie) {
+                const cookies = document.cookie.split(';');
+                for (let c of cookies) {
+                    c = c.trim();
+                    if (c.substring(0, name.length + 1) === (name + '=')) {
+                        v = decodeURIComponent(c.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return v;
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,940 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ room.name }} - Salle de Réunion{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --blurple: #5865F2;
+    --blurple-hover: #4752C4;
+    --success: #3BA55C;
+    --warning: #FAA61A;
+    --danger: #ED4245;
+    --dark: #202225;
+    --dark-hover: #2B2D31;
+    --text-muted: #72767D;
+    --divider: #40444B;
+    --glass-bg: rgba(30, 41, 59, 0.85);
+    --glass-border: rgba(71, 85, 105, 0.5);
+}
+
+.meeting-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    height: calc(100vh - 4rem);
+    overflow: hidden;
+}
+
+.meeting-layout.chat-hidden {
+    grid-template-columns: 1fr;
+}
+
+/* Video Area */
+.video-area {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+/* Google Meet Container */
+.meet-container {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: var(--dark);
+}
+
+.meet-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Video Grid (fallback when no Google Meet) */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.video-card {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: var(--dark);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.video-card:hover {
+    border-color: var(--blurple);
+    transform: translateY(-2px);
+}
+
+.video-card.speaking {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px rgba(59, 165, 92, 0.3);
+}
+
+.video-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1E293B, #334155);
+}
+
+.video-placeholder .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--blurple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 0.75rem;
+}
+
+.video-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.video-overlay .name {
+    font-weight: 600;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.video-overlay .badge {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background: var(--blurple);
+    color: white;
+}
+
+/* Chat Panel */
+.chat-panel {
+    background: #1E293B;
+    border-left: 1px solid var(--divider);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.chat-panel.collapsed {
+    width: 0;
+    border: none;
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--divider);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.chat-message {
+    display: flex;
+    gap: 0.75rem;
+    animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-message .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--blurple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+}
+
+.chat-message .content {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-message .author {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: white;
+}
+
+.chat-message .author.host { color: var(--warning); }
+.chat-message .author.moderator { color: var(--blurple); }
+
+.chat-message .text {
+    font-size: 0.875rem;
+    color: #CBD5E1;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.chat-message .time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.chat-message.system {
+    justify-content: center;
+}
+
+.chat-message.system .text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.chat-input-area {
+    padding: 1rem;
+    border-top: 1px solid var(--divider);
+}
+
+.chat-input-wrapper {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: #0F172A;
+    border: 1px solid var(--divider);
+    border-radius: 0.75rem;
+    color: white;
+    font-size: 0.875rem;
+    resize: none;
+    min-height: 44px;
+    max-height: 120px;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--blurple);
+    box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.25);
+}
+
+.chat-send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 0.75rem;
+    border: none;
+    background: var(--blurple);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.chat-send-btn:hover {
+    background: var(--blurple-hover);
+    transform: scale(1.05);
+}
+
+/* Controls Bar */
+.controls-bar {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+}
+
+.control-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 0.875rem;
+    border: none;
+    background: #1E293B;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.control-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn.active {
+    background: var(--danger);
+}
+
+.control-btn i {
+    font-size: 1.25rem;
+}
+
+.control-btn .label {
+    font-size: 0.6rem;
+    opacity: 0.7;
+}
+
+.control-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--divider);
+}
+
+/* Room Header */
+.room-header {
+    background: rgba(30, 41, 59, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--divider);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.room-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.room-title h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.room-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #94A3B8;
+}
+
+.badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    border-radius: 9999px;
+    color: #FCA5A5;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.badge-live .dot {
+    width: 8px;
+    height: 8px;
+    background: #EF4444;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Participants List */
+.participants-list {
+    padding: 0.75rem;
+}
+
+.participant-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    transition: background 0.2s ease;
+}
+
+.participant-item:hover {
+    background: rgba(51, 65, 85, 0.5);
+}
+
+.participant-item .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--blurple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: white;
+}
+
+.participant-item .info {
+    flex: 1;
+    min-width: 0;
+}
+
+.participant-item .name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.participant-item .role-badge {
+    font-size: 0.65rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background: var(--blurple);
+    color: white;
+}
+
+.participant-item .role-badge.host {
+    background: var(--warning);
+    color: black;
+}
+
+.participant-item .status-icons {
+    display: flex;
+    gap: 0.375rem;
+}
+
+.participant-item .status-icons i {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.participant-item .status-icons i.muted {
+    color: var(--danger);
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+    .meeting-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .chat-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 360px;
+        transform: translateX(100%);
+        z-index: 90;
+    }
+    
+    .chat-panel.mobile-open {
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .controls-bar {
+        width: 95%;
+        justify-content: space-around;
+        padding: 0.5rem 1rem;
+    }
+    
+    .control-btn {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .control-btn .label {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Room Header -->
+<div class="room-header">
+    <div class="room-title">
+        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+            <i class="fa-solid fa-video text-white"></i>
+        </div>
+        <div>
+            <h1>{{ room.name }}</h1>
+            {% if room.description %}
+            <p class="text-sm text-text-muted">{{ room.description|truncatechars:60 }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="room-meta">
+        <div class="badge-live">
+            <span class="dot"></span>
+            EN DIRECT
+        </div>
+        <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-users text-primary"></i>
+            <span id="participantCount">{{ room.participant_count }}</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-clock text-text-muted"></i>
+            <span id="meetingTimer">00:00:00</span>
+        </div>
+    </div>
+    
+    <div class="flex items-center gap-2">
+        <button id="toggleChatBtn" class="control-btn" style="width: 40px; height: 40px;">
+            <i class="fa-solid fa-comments"></i>
+        </button>
+        <a href="{% url 'videoconf:leave_room' room.id %}" class="control-btn" style="width: 40px; height: 40px; background: var(--danger);">
+            <i class="fa-solid fa-phone-slash"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Main Layout -->
+<div class="meeting-layout" id="meetingLayout">
+    <!-- Video Area -->
+    <div class="video-area" id="videoArea">
+        {% if room.google_meet_link %}
+        <!-- Google Meet Embed -->
+        <div class="meet-container">
+            <iframe 
+                src="{{ room.google_meet_link }}"
+                allow="microphone;camera;screen-share;display-capture;fullscreen"
+                allowfullscreen>
+            </iframe>
+        </div>
+        {% else %}
+        <!-- Video Grid (fallback) -->
+        <div class="video-grid" id="videoGrid">
+            <!-- Video cards will be dynamically added -->
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Chat Panel -->
+    <aside class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <h3 class="font-semibold text-white">
+                <i class="fa-solid fa-comments text-primary mr-2"></i>
+                Discussion
+            </h3>
+            <button id="collapseChatBtn" class="text-text-muted hover:text-white transition">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded here -->
+        </div>
+
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <textarea 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Écrire un message..."
+                    rows="1"
+                ></textarea>
+                <button id="sendChatBtn" class="chat-send-btn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- Controls Bar -->
+<div class="controls-bar" id="controlsBar">
+    <button class="control-btn" id="micBtn">
+        <i class="fa-solid fa-microphone"></i>
+        <span class="label">Micro</span>
+    </button>
+    
+    <button class="control-btn" id="camBtn">
+        <i class="fa-solid fa-video"></i>
+        <span class="label">Caméra</span>
+    </button>
+    
+    {% if room.google_meet_link %}
+    <div class="control-divider"></div>
+    <button class="control-btn" onclick="window.open('{{ room.google_meet_link }}', '_blank')">
+        <i class="fa-brands fa-google"></i>
+        <span class="label">Meet</span>
+    </button>
+    {% endif %}
+    
+    <div class="control-divider"></div>
+    
+    <button class="control-btn" id="participantsBtn">
+        <i class="fa-solid fa-users"></i>
+        <span class="label">
+            <span id="participantCountBtn">{{ room.participant_count }}</span>
+        </span>
+    </button>
+    
+    <div class="control-divider"></div>
+    
+    <a href="{% url 'videoconf:leave_room' room.id %}" class="control-btn active">
+        <i class="fa-solid fa-phone-slash"></i>
+        <span class="label">Quitter</span>
+    </a>
+</div>
+
+<!-- Participants Sidebar (hidden by default) -->
+<div id="participantsSidebar" class="fixed right-0 top-16 bottom-0 w-80 bg-bg-secondary border-l border-border-standard transform translate-x-full transition-transform duration-300 z-40">
+    <div class="p-4 border-b border-border-standard flex items-center justify-between">
+        <h3 class="font-semibold text-white">
+            <i class="fa-solid fa-users text-primary mr-2"></i>
+            Participants
+        </h3>
+        <button id="closeParticipantsBtn" class="text-text-muted hover:text-white">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div class="participants-list overflow-y-auto" id="participantsList">
+        <!-- Participants will be loaded here -->
+    </div>
+</div>
+
+<script>
+// ─── State ───
+const state = {
+    roomId: '{{ room.id }}',
+    userId: '{{ user.id }}',
+    userName: '{{ user.full_name }}',
+    userRole: '{{ user_rp.role|default:"participant" }}',
+    ws: null,
+    timerStart: Date.now(),
+    messages: [],
+    participants: [],
+    isMicOn: true,
+    isCamOn: true,
+    chatCollapsed: false,
+};
+
+// ─── WebSocket Connection ───
+function connectWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/room/${state.roomId}/`;
+    
+    state.ws = new WebSocket(wsUrl);
+    
+    state.ws.onopen = () => {
+        console.log('Connected to room WebSocket');
+        // Notify joined
+        state.ws.send(JSON.stringify({
+            action: 'participant_joined',
+        }));
+    };
+    
+    state.ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'chat_message') {
+            addChatMessage(data.message);
+        } else if (data.type === 'participants_list') {
+            state.participants = data.participants;
+            renderParticipants();
+            updateParticipantCount();
+        } else if (data.type === 'participant_update') {
+            handleParticipantUpdate(data.update);
+        }
+    };
+    
+    state.ws.onclose = () => {
+        console.log('Disconnected from room WebSocket');
+        // Reconnect after 3 seconds
+        setTimeout(connectWebSocket, 3000);
+    };
+}
+
+// ─── Chat Functions ───
+function addChatMessage(msg) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    
+    if (msg.is_system_message) {
+        div.className = 'chat-message system';
+        div.innerHTML = `<span class="text">${msg.content}</span>`;
+    } else {
+        const initials = msg.user_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const roleClass = msg.user_role === 'host' ? 'host' : (msg.user_role === 'moderator' ? 'moderator' : '');
+        
+        div.className = 'chat-message';
+        div.innerHTML = `
+            <div class="avatar">${initials}</div>
+            <div class="content">
+                <div class="author ${roleClass}">${msg.user_name}</div>
+                <div class="text">${escapeHtml(msg.content)}</div>
+                <div class="time">${formatTime(msg.created_at)}</div>
+            </div>
+        `;
+    }
+    
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const content = input.value.trim();
+    
+    if (!content || !state.ws) return;
+    
+    state.ws.send(JSON.stringify({
+        action: 'chat_message',
+        content: content,
+    }));
+    
+    input.value = '';
+    input.style.height = 'auto';
+}
+
+function loadMessages() {
+    fetch(`/api/v1/videoconf/rooms/${state.roomId}/messages/`)
+        .then(r => r.json())
+        .then(messages => {
+            messages.forEach(msg => addChatMessage(msg));
+        })
+        .catch(err => console.error('Failed to load messages:', err));
+}
+
+// ─── Participants Functions ───
+function renderParticipants() {
+    const list = document.getElementById('participantsList');
+    const videoGrid = document.getElementById('videoGrid');
+    
+    if (list) list.innerHTML = '';
+    if (videoGrid) videoGrid.innerHTML = '';
+    
+    state.participants.forEach(p => {
+        // Add to sidebar
+        if (list) {
+            const initials = p.user_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const item = document.createElement('div');
+            item.className = 'participant-item';
+            item.innerHTML = `
+                <div class="avatar">${initials}</div>
+                <div class="info">
+                    <div class="name">${p.user_name}</div>
+                    ${p.role === 'host' ? '<span class="role-badge host">Hôte</span>' : ''}
+                    ${p.role === 'moderator' ? '<span class="role-badge">Modérateur</span>' : ''}
+                </div>
+                <div class="status-icons">
+                    ${p.is_muted ? '<i class="fa-solid fa-microphone-slash muted"></i>' : '<i class="fa-solid fa-microphone"></i>'}
+                    ${!p.is_camera_on ? '<i class="fa-solid fa-video-slash muted"></i>' : ''}
+                </div>
+            `;
+            list.appendChild(item);
+        }
+        
+        // Add to video grid (if no Google Meet)
+        if (videoGrid && !'{{ room.google_meet_link|yesno:"true,false" }}') {
+            const initials = p.user_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.innerHTML = `
+                <div class="video-placeholder">
+                    <div class="avatar">${initials}</div>
+                    <div class="name text-white font-semibold">${p.user_name}</div>
+                </div>
+                <div class="video-overlay">
+                    <span class="name">${p.user_name}</span>
+                    ${p.role === 'host' ? '<span class="badge">Hôte</span>' : ''}
+                </div>
+            `;
+            videoGrid.appendChild(card);
+        }
+    });
+    
+    updateParticipantCount();
+}
+
+function handleParticipantUpdate(update) {
+    if (update.action === 'joined') {
+        state.participants.push({
+            user_id: update.user_id,
+            user_name: update.user_name,
+            user_avatar: update.user_avatar,
+            role: update.role,
+            is_muted: false,
+            is_camera_on: true,
+        });
+    } else if (update.action === 'left') {
+        state.participants = state.participants.filter(p => p.user_id !== update.user_id);
+    } else if (update.action === 'muted') {
+        const p = state.participants.find(p => p.user_id === update.user_id);
+        if (p) p.is_muted = update.is_muted;
+    } else if (update.action === 'camera') {
+        const p = state.participants.find(p => p.user_id === update.user_id);
+        if (p) p.is_camera_on = update.is_camera_on;
+    }
+    
+    renderParticipants();
+}
+
+function updateParticipantCount() {
+    const count = state.participants.length;
+    document.querySelectorAll('#participantCount, #participantCountBtn').forEach(el => {
+        el.textContent = count;
+    });
+}
+
+// ─── Timer ───
+function startTimer() {
+    setInterval(() => {
+        const elapsed = Date.now() - state.timerStart;
+        const hours = Math.floor(elapsed / 3600000);
+        const minutes = Math.floor((elapsed % 3600000) / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        
+        document.getElementById('meetingTimer').textContent = 
+            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }, 1000);
+}
+
+// ─── Controls ───
+function setupControls() {
+    // Send message
+    document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    // Auto-resize textarea
+    document.getElementById('chatInput').addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    
+    // Toggle chat
+    document.getElementById('toggleChatBtn').addEventListener('click', toggleChat);
+    document.getElementById('collapseChatBtn').addEventListener('click', toggleChat);
+    
+    // Toggle participants sidebar
+    document.getElementById('participantsBtn').addEventListener('click', toggleParticipants);
+    document.getElementById('closeParticipantsBtn').addEventListener('click', toggleParticipants);
+    
+    // Mic toggle
+    document.getElementById('micBtn').addEventListener('click', () => {
+        state.isMicOn = !state.isMicOn;
+        const btn = document.getElementById('micBtn');
+        btn.classList.toggle('active', !state.isMicOn);
+        btn.querySelector('i').className = state.isMicOn ? 'fa-solid fa-microphone' : 'fa-solid fa-microphone-slash';
+        
+        if (state.ws) {
+            state.ws.send(JSON.stringify({ action: 'toggle_mute' }));
+        }
+    });
+    
+    // Camera toggle
+    document.getElementById('camBtn').addEventListener('click', () => {
+        state.isCamOn = !state.isCamOn;
+        const btn = document.getElementById('camBtn');
+        btn.classList.toggle('active', !state.isCamOn);
+        btn.querySelector('i').className = state.isCamOn ? 'fa-solid fa-video' : 'fa-solid fa-video-slash';
+        
+        if (state.ws) {
+            state.ws.send(JSON.stringify({ action: 'toggle_camera' }));
+        }
+    });
+}
+
+function toggleChat() {
+    const panel = document.getElementById('chatPanel');
+    const layout = document.getElementById('meetingLayout');
+    const icon = document.querySelector('#collapseChatBtn i');
+    
+    panel.classList.toggle('collapsed');
+    layout.classList.toggle('chat-hidden');
+    
+    if (panel.classList.contains('collapsed')) {
+        icon.className = 'fa-solid fa-chevron-left';
+    } else {
+        icon.className = 'fa-solid fa-chevron-right';
+    }
+}
+
+function toggleParticipants() {
+    const sidebar = document.getElementById('participantsSidebar');
+    sidebar.classList.toggle('translate-x-full');
+}
+
+// ─── Utilities ───
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatTime(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ─── Initialize ───
+document.addEventListener('DOMContentLoaded', () => {
+    connectWebSocket();
+    loadMessages();
+    startTimer();
+    setupControls();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content_empty %}
+<div class="relative min-h-screen bg-slate-50 text-gray-900 overflow-hidden">
+    
+    <!-- Dégradés de fond animés (Adaptés au thème clair) -->
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+        <div class="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-indigo-50 rounded-full blur-[120px] animate-pulse"></div>
+        <div class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] bg-violet-50 rounded-full blur-[100px]"></div>
+        <div class="absolute -bottom-[10%] left-[20%] w-[60%] h-[40%] bg-cyan-50 rounded-full blur-[150px]"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative pt-40 pb-20 px-6 max-w-7xl mx-auto text-center">
+        <div class="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white border border-gray-100 mb-10 shadow-sm">
+            <span class="flex h-2.5 w-2.5 rounded-full bg-cyan-500 animate-ping"></span>
+            <span class="text-[11px] font-black uppercase tracking-[0.3em] text-cyan-600">L'Éducation propulsée par l'IA 2.0</span>
+        </div>
+        
+        <h1 class="text-7xl md:text-9xl font-black tracking-tighter mb-10 leading-[0.85] text-gray-900">
+            L'AVENIR DE <br>
+            <span class="text-indigo-600 italic">L'EXCELLENCE</span>.
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-16 font-medium leading-relaxed">
+            Rejoignez l'élite mondiale. Une plateforme chirurgicale conçue pour les esprits visionnaires.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-8 mb-24">
+            <a href="{% url 'register' %}" class="w-full sm:w-auto bg-indigo-600 text-white px-12 py-6 rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg hover:bg-indigo-700 transition-all duration-500">
+                Commencer l'ascension
+            </a>
+            <a href="#pricing" class="w-full sm:w-auto px-12 py-6 rounded-2xl text-sm font-black uppercase tracking-widest border border-gray-200 text-gray-700 hover:bg-gray-100 transition-all">
+                Voir les Plans
+            </a>
+        </div>
+    </section>
+
+    <!-- Section Tarification -->
+    <section id="pricing" class="py-32 overflow-hidden bg-white">
+        <div class="text-center mb-24 px-6">
+            <h2 class="text-5xl font-black mb-6 tracking-tight text-gray-900">Choisissez votre <span class="text-indigo-600 italic">Vitesse</span></h2>
+            <p class="text-gray-500 font-medium">Des plans flexibles qui s'adaptent à votre ambition.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 border-t border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-6 text-center text-sm text-gray-500">
+            © 2026 Académie Numérique IA. All Rights Reserved.
+        </div>
+    </footer>
+</div>
+{% endblock %}

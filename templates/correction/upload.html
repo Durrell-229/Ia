@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto p-6 glass rounded-xl">
+    <h2 class="text-2xl font-bold mb-4">Téléverser votre copie</h2>
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        <input type="file" name="image" accept="image/*" class="w-full p-3 bg-bg-secondary rounded-lg border border-bg-tertiary">
+        <button type="submit" class="w-full py-3 bg-button-gradient font-bold rounded-lg hover:opacity-90">Soumettre pour correction IA</button>
+    </form>
+</div>
+{% endblock %}

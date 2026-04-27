@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+{% block title %}Ma Progression - Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary py-8 px-4">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header Principal -->
+        <div class="mb-8">
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-3">
+                <i class="fas fa-trophy text-accent mr-3"></i>
+                Ma Progression
+            </h1>
+            <p class="text-lg text-text-muted">Suivez votre parcours d'apprentissage et depassez vos limites!</p>
+        </div>
+        
+        <!-- Stats Globales en Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            
+            <!-- XP Card -->
+            <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-3xl p-6 text-white shadow-xl shadow-yellow-500/25 hover:scale-105 transition-transform duration-300">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm opacity-90 uppercase tracking-wider font-bold">XP Total</p>
+                        <p class="text-4xl font-black mt-2">{{ xp_total }}</p>
+                    </div>
+                    <div class="bg-white/20 p-3 rounded-2xl">
+                        <i class="fas fa-bolt text-3xl"></i>
+                    </div>
+                </div>
+                <div class="bg-white/20 rounded-full h-3 overflow-hidden">
+                    <div class="bg-white h-full rounded-full" style="width: {{ (xp_total | floatformat:0) | slice(':3') }}%"></div>
+                </div>
+                <p class="text-xs mt-2 opacity-90">Niveau {{ niveau }}</p>
+            </div>
+            
+            <!-- Streak Card -->
+            <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl p-6 text-white shadow-xl shadow-orange-500/25 hover:scale-105 transition-transform duration-300">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm opacity-90 uppercase tracking-wider font-bold">Série Jours</p>
+                        <p class="text-4xl font-black mt-2">🔥 {{ streak.current_streak }}</p>
+                    </div>
+                    <div class="bg-white/20 p-3 rounded-2xl">
+                        <i class="fas fa-fire text-3xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs opacity-90">
+                    Record: {{ streak.longest_streak }} jours • Bonus x{{ streak.streak_multiplier }}
+                </p>
+                
+                {% if has_daily_reward %}
+                <button onclick="claimReward()" class="mt-3 w-full bg-white text-orange-600 font-bold py-2 rounded-xl hover:bg-gray-100 transition">
+                    <i class="fas fa-gift mr-2"></i>Réclamer (+{{ 10 + streak.streak_bonus_level * 5 }} XP)
+                </button>
+                {% else %}
+                <div class="mt-3 text-xs opacity-75">Déjà réclamé aujourd'hui ✓</div>
+                {% endif %}
+            </div>
+            
+            <!-- Badges Card -->
+            <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl p-6 text-white shadow-xl shadow-purple-500/25 hover:scale-105 transition-transform duration-300">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm opacity-90 uppercase tracking-wider font-bold">Badges Obtus</p>
+                        <p class="text-4xl font-black mt-2">{{ total_badges }}</p>
+                    </div>
+                    <div class="bg-white/20 p-3 rounded-2xl">
+                        <i class="fas fa-medal text-3xl"></i>
+                    </div>
+                </div>
+                <a href="{% url 'gamification:listes_badges' %}" class="text-xs font-bold hover:underline">
+                    Voir tous les badges →
+                </a>
+            </div>
+            
+            <!-- Classement Card -->
+            <div class="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl p-6 text-white shadow-xl shadow-blue-500/25 hover:scale-105 transition-transform duration-300">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm opacity-90 uppercase tracking-wider font-bold">Rang Mondial</p>
+                        <p class="text-4xl font-black mt-2">#{{ classement.rang_mondial|default:"--" }}</p>
+                    </div>
+                    <div class="bg-white/20 p-3 rounded-2xl">
+                        <i class="fas fa-chart-line text-3xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs opacity-90">Score: {{ classement.score_total|default:"0" }} XP</p>
+                <a href="{% url 'gamification:leaderboard_mondial' %}" class="text-xs font-bold hover:underline">
+                    Voir le classement →
+                </a>
+            </div>
+        </div>
+        
+        <!-- Section Badges Récents -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Derniers Badges -->
+            <div class="lg:col-span-2 bg-bg-card backdrop-blur-sm rounded-3xl p-6 border border-border-standard">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-black text-white flex items-center">
+                        <i class="fas fa-star text-yellow-400 mr-3"></i>
+                        Derniers Badges Débloqués
+                    </h2>
+                    <a href="{% url 'gamification:listes_badges' %}" class="text-accent font-bold hover:underline">
+                        Tous les badges →
+                    </a>
+                </div>
+                
+                {% if badges_recents %}
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for user_badge in badges_recents %}
+                    <div class="bg-bg-secondary/50 rounded-2xl p-4 text-center border-2 border-accent/30 animate-pulse">
+                        <div class="text-5xl mb-2">{{ user_badge.badge.icone }}</div>
+                        <h3 class="font-bold text-white text-sm mb-1">{{ user_badge.badge.nom }}</h3>
+                        <p class="text-xs text-text-muted">{{ user_badge.get_obtenu_at|date:"d/m H:i" }}</p>
+                        {% if user_badge.est_nouveau %}
+                        <span class="inline-block mt-2 px-2 py-1 bg-accent text-dark-bg text-xs font-bold rounded-lg">
+                            NOUVEAU!
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full text-center py-12 bg-bg-secondary/30 rounded-2xl">
+                        <i class="fas fa-trophy text-6xl text-bg-secondary mb-4"></i>
+                        <p class="text-text-muted">Aucun badge obtenu pour le moment.</p>
+                        <p class="text-sm text-text-muted mt-2">Continuez à apprendre pour débloquer des récompenses!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12 bg-bg-secondary/30 rounded-2xl">
+                    <i class="fas fa-trophy text-6xl text-bg-secondary mb-4"></i>
+                    <p class="text-text-muted">Aucun badge récent.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Historique Actions XP -->
+            <div class="bg-bg-card backdrop-blur-sm rounded-3xl p-6 border border-border-standard">
+                <h2 class="text-xl font-black text-white mb-4 flex items-center">
+                    <i class="fas fa-clock text-accent mr-2"></i>
+                    Activité Récente
+                </h2>
+                
+                <div class="space-y-3 max-h-96 overflow-y-auto">
+                    {% for action in dernier_actions %}
+                    <div class="flex items-start gap-3 p-3 bg-bg-secondary/50 rounded-xl">
+                        <div class="bg-accent/20 p-2 rounded-lg">
+                            <i class="fas fa-plus-circle text-accent"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-white text-sm">{{ action.description|default:action.action_type }}</p>
+                            <p class="text-xs text-green-400 font-bold">+{{ action.points_gagnes }} XP</p>
+                            <p class="text-[10px] text-text-muted">{{ action.created_at|timesince }} il y a</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-text-muted text-center py-4">Aucune activité récente</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section Leaderboard Preview -->
+        <div class="bg-bg-card backdrop-blur-sm rounded-3xl p-6 border border-border-standard">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-white flex items-center">
+                    <i class="fas fa-users text-accent mr-3"></i>
+                    Top Apprentis de la Semaine
+                </h2>
+                <a href="{% url 'gamification:leaderboard_mondial' %}" class="text-accent font-bold hover:underline">
+                    Voir tout le classement →
+                </a>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-border-standard">
+                            <th class="text-left py-3 px-4 text-xs font-bold text-text-muted uppercase tracking-wider">Rang</th>
+                            <th class="text-left py-3 px-4 text-xs font-bold text-text-muted uppercase tracking-wider">Élève</th>
+                            <th class="text-right py-3 px-4 text-xs font-bold text-text-muted uppercase tracking-wider">XP</th>
+                            <th class="text-right py-3 px-4 text-xs font-bold text-text-muted uppercase tracking-wider">Moyenne</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in classement_top_10 %}
+                        <tr class="border-b border-border-standard/50 {% cycle 'bg-transparent' 'bg-bg-tertiary/30' %}">
+                            <td class="py-3 px-4">
+                                {% if forloop.counter == 1 %}<i class="fas fa-trophy text-yellow-400"></i>{% elif forloop.counter == 2 %}<i class="fas fa-medal text-gray-400"></i>{% elif forloop.counter == 3 %}<i class="fas fa-medal text-orange-700"></i>{% else %}#{{ forloop.counter }}{% endif %}
+                            </td>
+                            <td class="py-3 px-4 font-bold text-white">{{ entry.user.full_name }}</td>
+                            <td class="py-3 px-4 text-right font-bold text-accent">{{ entry.score_total }} XP</td>
+                            <td class="py-3 px-4 text-right font-bold text-white">{{ entry.moyenne }}/20</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="py-8 text-center text-text-muted">Aucune donnée disponible</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Footer motivation -->
+        <div class="mt-8 bg-gradient-to-r from-accent/20 via-primary/20 to-success/20 rounded-3xl p-6 border border-accent/30">
+            <div class="flex items-center gap-4">
+                <div class="bg-accent/20 p-4 rounded-2xl">
+                    <i class="fas fa-rocket text-3xl text-accent"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-white text-lg mb-1">Continuez votre élan!</h3>
+                    <p class="text-text-muted">Chaque jour compte. Restez concentré et voyez vos efforts porter leurs fruits.</p>
+                </div>
+                <a href="#" class="bg-accent hover:bg-accent-hover text-dark-bg font-bold px-6 py-3 rounded-xl transition">
+                    Commencer une activité
+                </a>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Modal récompense quotidienne -->
+<div id="rewardModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl p-8 max-w-md w-full mx-4 text-center transform scale-95 opacity-0 transition-all duration-300" id="rewardContent">
+        <div class="text-6xl mb-4">🎁</div>
+        <h3 class="text-2xl font-black text-white mb-2">Récompense Quotidienne!</h3>
+        <p class="text-white/90 mb-6">Vous avez marqué <strong id="streakCount">0</strong> jours d'affilée!</p>
+        <div class="bg-white/20 rounded-2xl p-4 mb-6">
+            <p class="text-white text-sm mb-1">Bonus Série:</p>
+            <p class="text-4xl font-black text-white"><span id="bonusPoints">0</span> XP</p>
+        </div>
+        <button onclick="closeModal()" class="w-full bg-white text-orange-600 font-bold py-3 rounded-xl hover:bg-gray-100 transition">
+            Merci!
+        </button>
+    </div>
+</div>
+
+<script>
+// Afficher modal si nouvelle récompense
+{% if has_daily_reward %}
+setTimeout(() => {
+    const modal = document.getElementById('rewardModal');
+    const content = document.getElementById('rewardContent');
+    const streakCount = document.getElementById('streakCount');
+    const bonusPoints = document.getElementById('bonusPoints');
+    
+    streakCount.textContent = '{{ streak.current_streak }}';
+    bonusPoints.textContent = '{{ 10 + streak.streak_bonus_level * 5 }}';
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}, 500);
+{% endif %}
+
+function claimReward() {
+    fetch('{% url "gamification:claim_daily_reward" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function closeModal() {
+    const modal = document.getElementById('rewardModal');
+    const content = document.getElementById('rewardContent');
+    
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

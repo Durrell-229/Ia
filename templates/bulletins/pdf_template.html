@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #1e293b; font-size: 11pt; line-height: 1.5; }
+        .header { border-bottom: 2px solid #4F46E5; pb: 20px; mb: 30px; display: flex; justify-content: space-between; }
+        .institution { font-weight: 900; font-size: 18pt; text-transform: uppercase; color: #4F46E5; }
+        .title { text-align: center; font-size: 22pt; font-weight: 900; margin: 40px 0; border: 3px solid #1e293b; padding: 10px; }
+        .student-info { margin-bottom: 40px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; text-align: left; font-size: 9pt; text-transform: uppercase; letter-spacing: 1px; }
+        td { border: 1px solid #e2e8f0; padding: 12px; vertical-align: top; }
+        .note { font-weight: bold; font-size: 13pt; }
+        .footer { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .signature-box { text-align: center; width: 250px; }
+        .signature-img { width: 150px; opacity: 0.8; }
+        .ia-comment { background-color: #f1f5f9; padding: 20px; border-radius: 10px; font-style: italic; border-left: 5px solid #4F46E5; }
+        .security-badge { font-family: monospace; font-size: 8pt; color: #94a3b8; }
+        .qr-code { width: 100px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div class="institution">Académie Numérique IA</div>
+        </div>
+        <div style="text-align: right; font-weight: bold;">
+            ANNÉE SCOLAIRE : {{ bulletin.annee_scolaire }}<br>
+            {{ bulletin.get_periode_display }}
+        </div>
+    </div>
+
+    <div class="title">RELEVÉ DE NOTES OFFICIEL</div>
+
+    <div class="student-info">
+        <table style="border: none;">
+            <tr style="border: none;">
+                <td style="border: none; width: 60%;">
+                    <strong>ÉLÈVE :</strong> {{ bulletin.eleve.get_full_name }}<br>
+                    <strong>ID :</strong> {{ bulletin.eleve.matricule }}<br>
+                    <strong>CLASSE :</strong> {{ bulletin.classe }}
+                </td>
+                <td style="border: none; text-align: right;">
+                    <strong>DATE D'ÉMISSION :</strong> {{ bulletin.created_at|date:"d/m/Y" }}<br>
+                    <strong>MOYENNE GÉNÉRALE :</strong> <span class="note" style="color: #4F46E5;">{{ bulletin.moyenne_generale }}/20</span><br>
+                    <strong>RANG :</strong> {{ bulletin.rang }} / 120
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 25%;">Discipline</th>
+                <th style="width: 15%;">Note / 20</th>
+                <th style="width: 15%;">Moy. Classe</th>
+                <th style="width: 45%;">Appréciation du Professeur & IA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in lignes %}
+            <tr>
+                <td><strong>{{ ligne.matiere }}</strong></td>
+                <td class="note">{{ ligne.note }}</td>
+                <td>{{ ligne.moyenne_classe }}</td>
+                <td style="font-size: 9pt;">{{ ligne.appreciation }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="ia-comment">
+        <strong>Synthèse Pédagogique Intelligence Artificielle (Gemini 2.0) :</strong><br>
+        {{ bulletin.appreciation_ia }}
+    </div>
+
+    <div class="footer">
+        <div style="width: 40%;">
+            <img src="file://{{ qr_path }}" class="qr-code"><br>
+            <div class="security-badge">
+                VÉRIFICATION NUMÉRIQUE<br>
+                AUTH-ID: {{ bulletin.verification_token }}<br>
+                SHA-256: {{ signature }}
+            </div>
+        </div>
+        <div class="signature-box" style="width: 60%; text-align: right;">
+            <div style="font-weight: bold; margin-bottom: 10px;">Le Recteur de l'Académie Numérique</div>
+            <div style="font-family: 'Brush Script MT', cursive; font-size: 24pt; color: #1e293b; margin-bottom: 5px;">Signature Numérique</div>
+            <div style="font-size: 8pt; color: #94a3b8;">Document signé numériquement et certifié conforme.</div>
+        </div>
+    </div>
+</body>
+</html>

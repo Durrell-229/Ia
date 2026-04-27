@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-7xl mx-auto p-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white">Centre de Contrôle Académique</h1>
+        <p class="text-primary" style="color: #6366F1;">Gérez vos contenus, validez les soumissions et supervisez les performances.</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-primary p-6 rounded-3xl text-white shadow-xl">
+            <h3 class="text-lg font-medium opacity-80">En Attente</h3>
+            <p class="text-4xl font-black mt-2">{{ pending_count }}</p>
+        </div>
+        <div class="bg-success p-6 rounded-3xl text-white shadow-xl">
+            <h3 class="text-lg font-medium opacity-80">Membres Actifs</h3>
+            <p class="text-4xl font-black mt-2">{{ total_users }}</p>
+        </div>
+        <div class="bg-warning p-6 rounded-3xl text-white shadow-xl">
+            <h3 class="text-lg font-medium opacity-80">Système</h3>
+            <p class="text-xl font-bold mt-2">Opérationnel</p>
+        </div>
+    </div>
+
+    <!-- Tabs Content -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <!-- Approvals -->
+        <div class="bg-bg-secondary border border-border-standard p-6 rounded-3xl">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fa-solid fa-list-check mr-3 text-primary"></i> Validations Pédagogiques (Examens)
+            </h2>
+            <div class="space-y-4">
+                {% for exam in pending_exams %}
+                <div class="flex items-center justify-between bg-bg-tertiary p-4 rounded-2xl">
+                    <div>
+                        <p class="font-semibold text-white">{{ exam.titre }}</p>
+                        <p class="text-xs text-text-muted">Par: {{ exam.createur.full_name }}</p>
+                    </div>
+                    <form method="post" action="{% url 'admin_approve_exam' exam.id %}">
+                        {% csrf_token %}
+                        <button class="bg-success hover:bg-success/80 px-4 py-2 rounded-lg font-bold text-sm text-white">Approuver</button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-text-muted italic text-center py-8">Aucune demande en attente.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Notifications & Quick Actions -->
+        <div class="bg-bg-secondary border border-border-standard p-6 rounded-3xl">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fa-solid fa-bell mr-3 text-warning"></i> Alertes Système
+            </h2>
+            <div class="space-y-4">
+                {% for note in notifications %}
+                <div class="bg-bg-secondary/50 p-4 rounded-2xl">
+                    <p class="font-bold text-white text-sm">{{ note.title }}</p>
+                    <p class="text-xs text-text-muted mt-1">{{ note.message }}</p>
+                </div>
+                {% empty %}
+                <p class="text-text-muted italic text-center py-8">Aucune notification.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; padding: 40px; }
+        .header { text-align: center; border-bottom: 2px solid #4F46E5; padding-bottom: 20px; margin-bottom: 30px; }
+        .student-info { margin-bottom: 30px; }
+        .grade-box { background-color: #f3f4f6; padding: 20px; border-radius: 10px; text-align: center; }
+        .feedback { margin-top: 20px; line-height: 1.6; }
+        .footer { margin-top: 50px; text-align: center; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="color: #4F46E5;">Académie Numérique</h1>
+        <p>Bulletin d'Évaluation Automatisé</p>
+    </div>
+    
+    <div class="student-info">
+        <p><strong>Élève :</strong> {{ student.first_name }} {{ student.last_name }}</p>
+        <p><strong>Examen :</strong> {{ exam.titre }}</p>
+        <p><strong>Date :</strong> {{ date|date:"d/m/Y" }}</p>
+    </div>
+
+    <div class="grade-box">
+        <h2 style="margin: 0;">NOTE FINALE</h2>
+        <p style="font-size: 40px; font-weight: bold; margin: 10px 0;">{{ grade }} / 20</p>
+    </div>
+
+    <div class="feedback">
+        <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">Détails & Remédiation IA</h3>
+        <p>{{ feedback|linebreaks }}</p>
+    </div>
+
+    <div class="footer">
+        <p>Document généré automatiquement par le système intelligent de l'Académie Numérique.</p>
+    </div>
+</body>
+</html>

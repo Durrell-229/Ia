@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Times New Roman', serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
+            background: #fff;
+            padding: 20px;
+        }
+        
+        /* En-tête institutionnel */
+        .header {
+            text-align: center;
+            border-bottom: 3px double #1a365d;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .logo-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .coast-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        
+        .institution-title {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .institution-title h1 {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1a365d;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+        
+        .institution-title h2 {
+            font-size: 10pt;
+            font-weight: normal;
+            color: #4a5568;
+            margin-bottom: 2px;
+        }
+        
+        .institution-title p {
+            font-size: 8pt;
+            color: #718096;
+        }
+        
+        .reference-number {
+            text-align: right;
+            font-size: 9pt;
+            color: #4a5568;
+            font-style: italic;
+        }
+        
+        /* Titre du document */
+        .document-title {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f7fafc;
+            border-left: 4px solid #1a365d;
+        }
+        
+        .document-title h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #1a365d;
+            text-transform: uppercase;
+        }
+        
+        /* Informations élève */
+        .student-info {
+            margin-bottom: 20px;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .info-table td {
+            padding: 6px 8px;
+            vertical-align: top;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #2d3748;
+            width: 140px;
+            background-color: #edf2f7;
+        }
+        
+        .info-value {
+            color: #1a202c;
+        }
+        
+        .info-value strong {
+            color: #2d3748;
+        }
+        
+        /* Tableau des notes */
+        .grades-container {
+            margin: 25px 0;
+            page-break-inside: avoid;
+        }
+        
+        .grades-header {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #1a365d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+            page-break-inside: auto;
+        }
+        
+        .grades-table thead {
+            background-color: #1a365d;
+            color: white;
+        }
+        
+        .grades-table th {
+            padding: 8px 4px;
+            font-weight: bold;
+            border: 2px solid #1a365d;
+            text-align: center;
+        }
+        
+        .grades-table th.subject {
+            text-align: left;
+            width: 35%;
+        }
+        
+        .grades-table tbody tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+        
+        .grades-table tbody tr:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .grades-table td {
+            padding: 6px 4px;
+            border: 1px solid #cbd5e0;
+            text-align: center;
+        }
+        
+        .grades-table td.subject {
+            text-align: left;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .grades-table td.note-highlight {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #2b6cb0;
+        }
+        
+        /* Synthèse globale */
+        .summary-section {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4f8;
+            border-left: 4px solid #2b6cb0;
+            page-break-inside: avoid;
+        }
+        
+        .summary-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #1a365d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .summary-item {
+            font-size: 10pt;
+        }
+        
+        .summary-item strong {
+            color: #2d3748;
+        }
+        
+        .global-average {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1a365d;
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #fff;
+            border: 2px solid #1a365d;
+            border-radius: 4px;
+        }
+        
+        /* Appréciation pédagogique */
+        .appreciation-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #cbd5e0;
+            border-radius: 4px;
+            page-break-inside: avoid;
+        }
+        
+        .appreciation-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #1a365d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .appreciation-content {
+            font-style: italic;
+            color: #2d3748;
+            text-align: justify;
+            line-height: 1.6;
+        }
+        
+        /* Footer signatures */
+        .signatures-section {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .signature-block {
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 2px solid #000;
+            margin-bottom: 5px;
+            padding-top: 5px;
+            min-height: 60px;
+        }
+        
+        .signature-title {
+            font-weight: bold;
+            color: #1a365d;
+        }
+        
+        /* QR Code de vérification */
+        .qr-section {
+            position: absolute;
+            bottom: 20px;
+            right: 40px;
+            text-align: center;
+        }
+        
+        .qr-code {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 3px;
+        }
+        
+        .verification-text {
+            font-size: 7pt;
+            color: #718096;
+        }
+        
+        /* Footer pagination */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-top: 1px solid #cbd5e0;
+            padding: 8px 20px;
+            text-align: center;
+            font-size: 8pt;
+            color: #718096;
+            background-color: #f7fafc;
+        }
+        
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80pt;
+            color: rgba(26, 54, 93, 0.03);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Responsive pour impression */
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .grades-table {
+                page-break-inside: auto;
+            }
+            
+            .grades-table tbody tr {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Filigrane -->
+    <div class="watermark">OFFICIEL</div>
+    
+    <!-- En-tête -->
+    <div class="header">
+        <div class="logo-section">
+            {% if logo_url %}
+            <img src="{{ logo_url }}" alt="Logo" class="coast-logo">
+            {% endif %}
+            
+            <div class="institution-title">
+                <h1>RÉPUBLIQUE DU BÉNIN</h1>
+                <h2><strong>Académie Numérique Internationale</strong></h2>
+                <p>Diplômé • Innovant • Excellence</p>
+            </div>
+            
+            <div style="width: 80px;"></div>
+        </div>
+        
+        <div class="reference-number">
+            Réfs: {{ reference_number }}<br>
+            Date: {{ date_generation|date:"d F Y" }}
+        </div>
+    </div>
+    
+    <!-- Titre du document -->
+    <div class="document-title">
+        <h3>BULLETIN DE NOTES OFFICIEL</h3>
+        <p style="font-size: 9pt; color: #4a5568; margin-top: 5px;">
+            Période: {{ periode_display }} - Année scolaire {{ annee_scolaire }}
+        </p>
+    </div>
+    
+    <!-- Informations élève -->
+    <div class="student-info">
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Nom:</td>
+                <td class="info-value"><strong>{{ eleve.last_name|upper }}</strong></td>
+                <td class="info-label">Classe:</td>
+                <td class="info-value"><strong>{{ classe }}</strong></td>
+            </tr>
+            <tr>
+                <td class="info-label">Prénom(s):</td>
+                <td class="info-value"><strong>{{ eleve.first_name }}</strong></td>
+                <td class="info-label">Date de naissance:</td>
+                <td class="info-value">{{ eleve.date_of_birth|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Sexe:</td>
+                <td class="info-value"><strong>{{ eleve.get_sexe_display }}</strong></td>
+                <td class="info-label">Matricule:</td>
+                <td class="info-value"><strong>{{ matricule }}</strong></td>
+            </tr>
+            <tr>
+                <td class="info-label">Adresse:</td>
+                <td class="info-value">{{ eleve.adresse|default:"Non renseignée" }}</td>
+                <td class="info-label">Téléphone:</td>
+                <td class="info-value">{{ eleve.telephone|default:"Non renseigné" }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Tableau des notes -->
+    <div class="grades-container">
+        <div class="grades-header">Détail des performances par matière</div>
+        
+        <table class="grades-table">
+            <thead>
+                <tr>
+                    <th class="subject">Matière / Évaluation</th>
+                    <th>Notes</th>
+                    <th>Coefficient</th>
+                    <th>Moyenne pondérée</th>
+                    <th>Appréciation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in lignes %}
+                <tr>
+                    <td class="subject">{{ ligne.matiere }}</td>
+                    <td class="note-highlight">{{ ligne.note }}/20</td>
+                    <td>x{{ ligne.coefficient|default:1 }}</td>
+                    <td><strong>{{ ligne.moyenne_ponderee|floatformat:2 }}</strong></td>
+                    <td style="font-size: 9pt; color: #4a5568;">
+                        {% if ligne.appreciation %}
+                        {{ ligne.appreciation|truncatewords:3 }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Synthèse globale -->
+    <div class="summary-section">
+        <div class="summary-title">Synthèse académique</div>
+        
+        <div class="global-average">
+            MOYENNE GÉNÉRALE: {{ moyenne_generale }}/20
+        </div>
+        
+        <div class="summary-grid">
+            <div class="summary-item">
+                <strong>Rang de classe:</strong> {{ rang }}/{{ total_eleves }}
+            </div>
+            <div class="summary-item">
+                <strong>Classification:</strong> 
+                {% if moyenne_generale >= 16 %}Excellent
+                elif moyenne_generale >= 14 %}Très Bien
+                elif moyenne_generale >= 12 %}Bien
+                elif moyenne_generale >= 10 %}Assez Bien
+                elif moyenne_generale >= 8 %}Passable
+                {% else %}Insuffisant{% endif %}
+            </div>
+            <div class="summary-item">
+                <strong>Taux de réussite:</strong> {{ taux_reussite }}%
+            </div>
+            <div class="summary-item">
+                <strong>Date d'émission:</strong> {{ date_generation|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Appréciation pédagogique IA -->
+    <div class="appreciation-section">
+        <div class="appreciation-title">Analyse pédagogique intelligente</div>
+        <div class="appreciation-content">
+            {{ appreciation_ia|linebreaksbr }}
+        </div>
+    </div>
+    
+    <!-- Signatures -->
+    <div class="signatures-section">
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-title">Directeur de l'établissement</div>
+            <div style="font-size: 9pt; color: #718096;">Signature et cachet</div>
+        </div>
+        
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-title">Conseiller principal d'éducation</div>
+            <div style="font-size: 9pt; color: #718096;">Signature et cachet</div>
+        </div>
+    </div>
+    
+    <!-- QR Code de vérification -->
+    <div class="qr-section">
+        {% if qr_code_url %}
+        <img src="{{ qr_code_url }}" alt="QR Code" class="qr-code">
+        {% else %}
+        <!-- Placeholder QR code si pas généré -->
+        <div style="width: 60px; height: 60px; background: #ddd; margin: 0 auto 3px; display: flex; align-items: center; justify-content: center; font-size: 8pt;">QR</div>
+        {% endif %}
+        <div class="verification-text">
+            Vérifiez ce bulletin sur:<br>
+            verify.academie-numerique.bj<br>
+            Token: {{ verification_token|slice:":8" }}...
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        Document généré automatiquement par l'Académie Numérique Internationale - 
+        Certificate No: {{ id|slice:":8 }}-{{ request.user.id|slice:":8" }}<br>
+        Ce document est valide numériquement et vérifiable en ligne
+    </div>
+</body>
+</html>

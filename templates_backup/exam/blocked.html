@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto text-center py-20">
+    <div class="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-8">
+        <i class="fas fa-user-slash text-red-500 text-4xl"></i>
+    </div>
+    <h1 class="text-3xl font-bold text-white mb-4">Accès Bloqué</h1>
+    <p class="text-slate-400 mb-8">
+        Votre session a été interrompue suite à plusieurs violations des règles anti-triche. 
+        Un rapport a été envoyé à votre conseiller pédagogique.
+    </p>
+    <a href="/" class="text-primary font-bold hover:underline">Retour à l'accueil</a>
+</div>
+{% endblock %}

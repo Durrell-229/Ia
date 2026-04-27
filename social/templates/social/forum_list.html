@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Forums & Communauté - Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-white mb-2">
+                <i class="fa-solid fa-comments text-primary mr-2"></i>
+                Forums & Communauté
+            </h1>
+            <p class="text-text-secondary">Discutez, partagez et apprenez ensemble</p>
+        </div>
+        <a href="{% url 'social:group_list' %}" class="px-6 py-3 bg-bg-tertiary border border-border-standard text-white rounded-xl hover:bg-bg-card transition">
+            <i class="fa-solid fa-users mr-2"></i>Groupes d'étude
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for forum in forums %}
+        <a href="{% url 'social:forum_detail' forum.id %}" class="glass rounded-xl p-6 hover-lift transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 block">
+            <div class="flex items-start gap-4">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style="background: {{ forum.color }}20;">
+                    <i class="fa-solid {{ forum.icon }} text-2xl" style="color: {{ forum.color }}"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-white mb-1">{{ forum.name }}</h3>
+                    <p class="text-sm text-text-secondary mb-3">{{ forum.description|truncatechars:80 }}</p>
+                    <div class="flex items-center gap-4 text-xs text-text-muted">
+                        <span><i class="fa-solid fa-list mr-1"></i>{{ forum.topic_count }} sujets</span>
+                        <span><i class="fa-solid fa-comment mr-1"></i>{{ forum.post_count }} messages</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

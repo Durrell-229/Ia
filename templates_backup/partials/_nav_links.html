@@ -1,0 +1,77 @@
+<ul role="list" class="-mx-2 space-y-1">
+    <li>
+        <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}bg-indigo-800 text-white{% else %}text-indigo-100 hover:bg-indigo-800 hover:text-white{% endif %} group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6">
+            <i class="fa-solid fa-gauge-high text-lg"></i>
+            Tableau de bord
+        </a>
+    </li>
+
+    <!-- SECTION PROFESSEUR (Visible par Prof ET Admin) -->
+    {% if user.role == 'professeur' or user.role == 'admin' %}
+    <li class="mt-4">
+        <div class="text-[10px] font-bold leading-6 text-indigo-200 uppercase tracking-widest px-2 opacity-60">Gestion Pédagogique</div>
+        <ul role="list" class="-mx-2 mt-1 space-y-1">
+            <li>
+                <a href="{% url 'exam_create' %}" class="text-indigo-100 hover:bg-indigo-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6">
+                    <i class="fa-solid fa-file-circle-plus text-lg"></i>
+                    Nouvelle Épreuve
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'exam_list' %}" class="text-indigo-100 hover:bg-indigo-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6">
+                    <i class="fa-solid fa-layer-group text-lg"></i>
+                    Banque d'Examens
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'qcm_start' %}" class="text-indigo-100 hover:bg-indigo-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6">
+                    <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                    Générateur QCM IA
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'ia_corrections_list' %}" class="text-indigo-100 hover:bg-indigo-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6">
+                    <i class="fa-solid fa-robot text-lg"></i>
+                    Corrections IA
+                </a>
+            </li>
+        </ul>
+    </li>
+    {% endif %}
+
+    <!-- SECTION ELEVE (Visible par Eleve ET Admin) -->
+    {% if user.role == 'eleve' or user.role == 'admin' %}
+    <li class="mt-4">
+        <div class="text-[10px] font-bold leading-6 text-indigo-200 uppercase tracking-widest px-2 opacity-60">Espace Apprenant</div>
+        <ul role="list" class="-mx-2 mt-1 space-y-1">
+            <li>
+                <a href="{% url 'bulletins:index' %}" class="text-indigo-100 hover:bg-indigo-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6">
+                    <i class="fa-solid fa-chart-line text-lg"></i>
+                    Mes Bulletins
+                </a>
+            </li>
+        </ul>
+    </li>
+    {% endif %}
+
+    <!-- SECTION ADMIN PURE -->
+    {% if user.role == 'admin' or user.role == 'conseiller' %}
+    <li class="mt-4">
+        <div class="text-[10px] font-bold leading-6 text-red-200 uppercase tracking-widest px-2">Supervision Système</div>
+        <ul role="list" class="-mx-2 mt-1 space-y-1">
+            <li>
+                <a href="{% url 'admin_dashboard' %}" class="text-indigo-100 hover:bg-indigo-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6">
+                    <i class="fa-solid fa-gauge-high text-lg"></i>
+                    Panel d'Administration
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'supervision' %}" class="text-indigo-100 hover:bg-indigo-800 hover:text-white group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6">
+                    <i class="fa-solid fa-users text-lg"></i>
+                    Supervision Membres
+                </a>
+            </li>
+        </ul>
+    </li>
+    {% endif %}
+</ul>

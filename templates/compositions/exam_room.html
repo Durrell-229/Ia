@@ -1,0 +1,809 @@
+{% extends 'base.html' %}
+{% block title %}Salle de Composition - {{ exam.titre }}{% endblock %}
+
+{% block content %}
+<!-- Salle de Composition Professionnelle Spacieuse & Responsive -->
+<div class="exam-room-container min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary flex flex-col">
+    
+    <!-- HEADER COMPACT -->
+    <header class="bg-bg-card backdrop-blur-md border-b border-border-standard sticky top-0 z-50">
+        <div class="max-w-[1800px] mx-auto px-4 py-3">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <!-- Info Session -->
+                <div class="flex items-center gap-4 flex-1">
+                    <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-xl hover:bg-bg-tertiary transition">
+                        <i class="fas fa-bars text-text-primary"></i>
+                    </button>
+                    
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-accent/10 rounded-xl">
+                            <i class="fas fa-file-alt text-accent text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg md:text-xl font-bold text-white leading-tight">{{ exam.titre }}</h1>
+                            <p class="text-xs text-text-muted hidden sm:block">{{ exam.matiere }} • {{ exam.classe.nom if exam.classe else "Classe" }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timer Global -->
+                <div class="flex items-center gap-4">
+                    <!-- Mode selection (visible only for admin/prof) -->
+                    {% if request.user.role in ['admin', 'professeur'] %}
+                    <select id="modeSelect" onchange="changeMode(this.value)" class="hidden lg:block bg-bg-secondary text-white px-4 py-2 rounded-xl border border-border-standard text-sm">
+                        <option value="online">Examen en ligne</option>
+                        <option value="paper">Examen sur papier</option>
+                    </select>
+                    {% endif %}
+                    
+                    <!-- Timer -->
+                    <div class="flex items-center gap-2 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/30">
+                        <i class="fas fa-clock text-red-400 animate-pulse"></i>
+                        <span id="timerDisplay" class="font-black text-xl md:text-2xl text-red-400 font-mono">00:00:00</span>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <button class="relative p-2 rounded-xl hover:bg-bg-tertiary transition" onclick="openNotifications()">
+                        <i class="fas fa-bell text-text-primary"></i>
+                        <span id="notificationBadge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- SIDEBAR INFO (Collapsible on mobile) -->
+        <aside id="infoSidebar" class="sidebar absolute lg:relative w-full lg:w-80 bg-bg-card backdrop-blur-md border-r border-border-standard transform -translate-x-full lg:translate-x-0 transition-transform duration-300 z-40 flex flex-col">
+            
+            <!-- Sidebar Header -->
+            <div class="p-6 border-b border-border-standard">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-white">Informations</h2>
+                    <button onclick="toggleSidebar()" class="lg:hidden p-1 rounded-lg hover:bg-bg-tertiary">
+                        <i class="fas fa-times text-text-muted"></i>
+                    </button>
+                </div>
+                
+                <!-- Stats session -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-bg-secondary/50 rounded-xl">
+                        <i class="fas fa-user-clock text-accent"></i>
+                        <div>
+                            <p class="text-xs text-text-muted">Temps écoulé</p>
+                            <p id="elapsedTime" class="font-bold text-white">00:00:00</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 p-3 bg-bg-secondary/50 rounded-xl">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        <div>
+                            <p class="text-xs text-text-muted">Statut</p>
+                            <p id="sessionStatus" class="font-bold text-white capitalize">En attente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rules & Instructions -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <h3 class="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Règles de l'examen</h3>
+                
+                <div class="space-y-3 text-sm text-text-primary">
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-shield-alt text-green-400 mt-1"></i>
+                        <p>Détecter toute tentative de triche</p>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-camera text-blue-400 mt-1"></i>
+                        <p>Caméra requise si mode surveillance</p>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-desktop text-yellow-400 mt-1"></i>
+                        <p>Plein écran obligatoire pendant l'épreuve</p>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-question-circle text-purple-400 mt-1"></i>
+                        <p><strong>{{ exam.nb_questions }}</strong> questions</p>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-clock text-orange-400 mt-1"></i>
+                        <p><strong>{{ exam.duree_minutes }}</strong> minutes</p>
+                    </div>
+                </div>
+                
+                <!-- Download files section -->
+                {% if files.exists %}
+                <div class="mt-6 pt-6 border-t border-border-standard">
+                    <h3 class="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Documents à télécharger</h3>
+                    
+                    <div class="space-y-2">
+                        {% for file in files %}
+                        <a href="{{ file.fichier.url }}" download 
+                           class="flex items-center gap-3 p-3 bg-bg-secondary/50 hover:bg-bg-secondary rounded-xl transition group">
+                            <i class="fas fa-file-pdf text-red-400 group-hover:scale-110 transition-transform"></i>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-white truncate">{{ file.nom_fichier }}</p>
+                                <p class="text-xs text-text-muted">{{ file.taille_kb }} KB</p>
+                            </div>
+                            <i class="fas fa-download text-text-muted group-hover:text-accent"></i>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </aside>
+        
+        <!-- EXAM CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto px-4 lg:px-8 py-6 relative">
+            <div class="max-w-5xl mx-auto space-y-6">
+                
+                <!-- WELCOME MESSAGE (Visible before start) -->
+                <div id="welcomeSection" class="bg-gradient-to-br from-accent/10 to-primary/10 border border-accent/30 rounded-3xl p-8 text-center">
+                    <div class="mb-6">
+                        <div class="inline-block p-6 bg-accent/20 rounded-full mb-4">
+                            <i class="fas fa-graduation-cap text-5xl text-accent"></i>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-black text-white mb-3">Bienvenue dans la salle d'examen</h2>
+                        <p class="text-text-muted max-w-2xl mx-auto">
+                            Vous allez passer: <strong class="text-accent">{{ exam.titre }}</strong><br>
+                            Veuillez vous assurer que votre connexion internet est stable et que vous êtes dans un environnement calme.
+                        </p>
+                    </div>
+                    
+                    <!-- Action buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onclick="enterFullAndStartExam()" 
+                                class="group bg-gradient-to-r from-accent to-primary hover:from-accent-hover hover:to-primary text-dark-bg font-bold text-lg px-8 py-4 rounded-2xl transition shadow-2xl shadow-accent/25">
+                            <i class="fas fa-play mr-3 group-hover:animate-pulse"></i>
+                            Commencer l'examen
+                        </button>
+                        
+                        <a href="{% url 'dashboard' %}" 
+                           class="bg-bg-secondary hover:bg-bg-tertiary text-white font-bold px-8 py-4 rounded-2xl transition border border-border-standard">
+                            <i class="fas fa-arrow-left mr-3"></i>
+                            Retour au dashboard
+                        </a>
+                    </div>
+                    
+                    <!-- System check -->
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                        <div class="flex items-center justify-center gap-3 p-3 bg-bg-secondary/50 rounded-xl">
+                            <i class="fas fa-wifi text-green-400"></i>
+                            <span class="text-sm text-text-muted">Connexion vérifiée</span>
+                        </div>
+                        <div class="flex items-center justify-center gap-3 p-3 bg-bg-secondary/50 rounded-xl">
+                            <i class="fas fa-desktop text-blue-400"></i>
+                            <span class="text-sm text-text-muted">Plein écran requis</span>
+                        </div>
+                        <div class="flex items-center justify-center gap-3 p-3 bg-bg-secondary/50 rounded-xl">
+                            <i class="fas fa-shield-alt text-purple-400"></i>
+                            <span class="text-sm text-text-muted">Anti-triche activé</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- EXAM INTERFACE (Hidden initially) -->
+                <div id="examInterface" class="hidden space-y-6">
+                    
+                    <!-- Progress Bar -->
+                    <div class="bg-bg-card backdrop-blur-sm rounded-3xl p-6 border border-border-standard">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-sm font-bold text-text-muted">Progression</span>
+                            <span id="progressPercent" class="text-sm font-bold text-accent">0%</span>
+                        </div>
+                        <div class="relative">
+                            <div class="bg-bg-secondary rounded-full h-4 overflow-hidden">
+                                <div id="progressBar" class="bg-gradient-to-r from-accent to-primary h-full rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-center text-xs text-text-muted">
+                            Question <span id="currentQNum">1</span> sur <span id="totalQNum">{{ exam.nb_questions }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Question Card (Discord-style) -->
+                    <div id="questionCard" class="bg-bg-card backdrop-blur-sm rounded-3xl overflow-hidden border border-border-standard shadow-2xl">
+                        <!-- Card Header -->
+                        <div class="bg-gradient-to-r from-accent/10 to-primary/10 p-4 border-b border-border-standard flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-accent/20 text-accent font-bold flex items-center justify-center">
+                                    <span id="qNumBadge">1</span>
+                                </span>
+                                <span class="font-bold text-white">Question <span id="qNumText">1</span></span>
+                            </div>
+                            <span class="text-xs text-text-muted font-bold" id="pointsBadge">{{ exam.points_par_question }} pts</span>
+                        </div>
+                        
+                        <!-- Card Content -->
+                        <div class="p-6">
+                            <!-- Question Text -->
+                            <div class="prose prose-invert max-w-none mb-6">
+                                <p id="questionText" class="text-lg text-white leading-relaxed">
+                                    Chargement de la question...
+                                </p>
+                            </div>
+                            
+                            <!-- Questions avec images (matière scientifique) -->
+                            <div id="questionImageContainer" class="hidden mb-6">
+                                <img id="questionImage" src="" alt="Question illustration" class="rounded-2xl border border-border-standard max-w-full h-auto">
+                            </div>
+                            
+                            <!-- Réponses multiples (QCM) -->
+                            <div id="optionsContainer" class="space-y-3">
+                                <!-- Options seront injectées dynamiquement -->
+                            </div>
+                            
+                            <!-- Zone de réponse libre (essay/question ouverte) -->
+                            <div id="textResponseContainer" class="hidden">
+                                <textarea id="answerTextarea" rows="8" 
+                                          class="w-full bg-bg-secondary text-white px-4 py-3 rounded-2xl border border-border-standard focus:border-accent focus:ring-2 focus:ring-accent outline-none resize-none"
+                                          placeholder="Écrivez votre réponse ici..."></textarea>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span id="charCount" class="text-xs text-text-muted">0 caractères</span>
+                                    <button onclick="insertImage()" class="text-xs text-accent hover:text-white transition">
+                                        <i class="fas fa-image mr-1"></i>Ajouter une image
+                                    </button>
+                                </div>
+                                
+                                <!-- Upload image pour réponse -->
+                                <div id="imageUploadPreview" class="hidden mt-3">
+                                    <div class="relative inline-block">
+                                        <img id="uploadedImagePreview" src="" class="rounded-xl border border-border-standard max-w-xs">
+                                        <button onclick="removeUploadedImage()" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Upload fichier pour copie scannée (mode papier) -->
+                            <div id="fileUploadContainer" class="hidden">
+                                <div class="border-2 border-dashed border-border-standard rounded-2xl p-8 text-center">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-accent mb-3"></i>
+                                    <p class="text-white font-medium mb-2">Glissez-déposez votre copie scannée ici</p>
+                                    <p class="text-xs text-text-muted mb-4">Formats acceptés: PNG, JPG, PDF (Max 10MB)</p>
+                                    
+                                    <input type="file" id="fileInput" accept="image/*,.pdf" 
+                                           class="hidden" onchange="handleFileUpload(event)">
+                                    <button onclick="document.getElementById('fileInput').click()" 
+                                            class="bg-accent hover:bg-accent-hover text-dark-bg font-bold px-6 py-2 rounded-xl transition">
+                                        Choisir un fichier
+                                    </button>
+                                    
+                                    <!-- Preview uploaded file -->
+                                    <div id="filePreview" class="hidden mt-4">
+                                        <div class="flex items-center gap-3 p-3 bg-bg-secondary/50 rounded-xl">
+                                            <i class="fas fa-file-medical text-red-400 text-xl"></i>
+                                            <div class="flex-1">
+                                                <p id="fileName" class="text-white text-sm font-medium">filename.jpg</p>
+                                                <p id="fileSize" class="text-xs text-text-muted">0 KB</p>
+                                            </div>
+                                            <button onclick="clearFile()" class="text-red-400 hover:text-white transition">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Navigation Buttons -->
+                        <div class="p-4 bg-bg-tertiary/50 flex justify-between items-center border-t border-border-standard">
+                            <button id="prevBtn" onclick="prevQuestion()" 
+                                    class="bg-bg-secondary hover:bg-bg-secondary-hover text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="fas fa-arrow-left mr-2"></i>Précédent
+                            </button>
+                            
+                            <button id="nextBtn" onclick="nextQuestion()" 
+                                    class="bg-accent hover:bg-accent-hover text-dark-bg font-bold px-6 py-3 rounded-xl transition">
+                                Suivant<i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                            
+                            <button id="finishBtn" onclick="submitExam()" 
+                                    class="hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-green-500/25">
+                                <i class="fas fa-flag-checkered mr-2"></i>Terminer l'examen
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating submit button for mobile -->
+                    <div class="lg:hidden fixed bottom-6 left-6 right-6 z-30">
+                        <button onclick="scrollToTop()" class="w-full bg-accent text-dark-bg font-bold py-4 rounded-2xl shadow-2xl">
+                            <i class="fas fa-chevron-up mr-2"></i>Montrer ma copie
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- PAPER MODE UPLOAD SECTION -->
+                <div id="paperUploadSection" class="hidden bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-dashed border-purple-500/30 rounded-3xl p-12 text-center">
+                    <div class="mb-6">
+                        <div class="inline-block p-6 bg-purple-500/20 rounded-full mb-4">
+                            <i class="fas fa-camera text-5xl text-purple-400"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-white mb-3">Soumettez votre copie scannée</h3>
+                        <p class="text-text-muted max-w-xl mx-auto mb-6">
+                            Une fois le temps écoulé, prenez des photos claires de votre copie et téléchargez-les pour que l'IA puisse la corriger automatiquement.
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-6">
+                        <div class="bg-bg-secondary/50 rounded-2xl p-6">
+                            <i class="fas fa-mobile-alt text-3xl text-accent mb-3"></i>
+                            <h4 class="font-bold text-white mb-2">Utilisez votre smartphone</h4>
+                            <ul class="text-sm text-text-muted space-y-1">
+                                <li>✓ Prenez plusieurs photos</li>
+                                <li>✓ Assurez-vous d'être lisibles</li>
+                                <li>✓ Toutes les pages doivent être visibles</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-bg-secondary/50 rounded-2xl p-6">
+                            <i class="fas fa-file-upload text-3xl text-blue-400 mb-3"></i>
+                            <h4 class="font-bold text-white mb-2">Format accepté</h4>
+                            <ul class="text-sm text-text-muted space-y-1">
+                                <li>• PNG, JPG jusqu'à 10MB</li>
+                                <li>• PDF jusqu'à 20MB</li>
+                                <li>• Maximum 5 fichiers</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <button onclick="initiatePaperUpload()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-lg px-12 py-4 rounded-2xl transition shadow-2xl shadow-purple-500/30">
+                        <i class="fas fa-camera mr-3"></i>Soumettre ma copie
+                    </button>
+                </div>
+                
+                <!-- COMPLETED STATE -->
+                <div id="completedSection" class="hidden text-center py-12">
+                    <div class="inline-block p-8 bg-green-500/20 rounded-full mb-6">
+                        <i class="fas fa-check-circle text-6xl text-green-400"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-white mb-4">Examen Terminé!</h2>
+                    <p class="text-text-muted mb-8 max-w-2xl mx-auto">
+                        Votre copie a été soumise avec succès. L'IA va maintenant la corriger et générer votre bulletin automatique.<br>
+                        Vous recevrez vos résultats sous peu.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="{% url 'compositions:list' %}" 
+                           class="bg-accent hover:bg-accent-hover text-dark-bg font-bold px-8 py-4 rounded-2xl transition">
+                            <i class="fas fa-list mr-2"></i>Voir toutes mes compositions
+                        </a>
+                        <a href="{% url 'bulletins:index' %}" 
+                           class="bg-bg-secondary hover:bg-bg-tertiary text-white font-bold px-8 py-4 rounded-2xl transition border border-border-standard">
+                            <i class="fas fa-file-pdf mr-2"></i>Mes bulletins
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+    
+    <!-- NOTIFICATIONS DROPDOWN (Style Discord) -->
+    <div id="notificationDropdown" class="fixed top-20 right-4 w-96 max-h-[70vh] bg-bg-card backdrop-blur-md rounded-2xl shadow-2xl border border-border-standard transform translate-x-full transition-transform duration-300 z-50 hidden">
+        <!-- Dropdown header -->
+        <div class="p-4 border-b border-border-standard flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-accent/20 rounded-lg">
+                    <i class="fas fa-bell text-accent"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white">Notifications</h3>
+                    <p class="text-xs text-text-muted"><span id="unreadCount">0</span> non lus</p>
+                </div>
+            </div>
+            <button onclick="closeNotifications()" class="p-2 rounded-lg hover:bg-bg-tertiary transition">
+                <i class="fas fa-times text-text-muted"></i>
+            </button>
+        </div>
+        
+        <!-- Notifications list -->
+        <div id="notificationsList" class="overflow-y-auto max-h-[calc(70vh-80px)]">
+            <!-- Loaded dynamically via JS -->
+        </div>
+        
+        <!-- Footer -->
+        <div class="p-4 border-t border-border-standard">
+            <button onclick="markAllRead()" class="w-full bg-bg-secondary hover:bg-bg-tertiary text-white font-bold py-2 px-4 rounded-xl transition text-sm">
+                Marquer tout comme lu
+            </button>
+        </div>
+    </div>
+    
+    <!-- FULLSCREEN OVERLAY -->
+    <div id="fullscreenOverlay" class="fixed inset-0 bg-bg-primary/95 backdrop-blur-md z-50 hidden flex items-center justify-center">
+        <div class="text-center">
+            <i class="fas fa-expand text-6xl text-accent mb-6 animate-pulse"></i>
+            <h2 class="text-3xl font-black text-white mb-4">Plein écran activé</h2>
+            <p class="text-text-muted mb-8">Pour garantir l'intégrité de l'examen, le plein écran est obligatoire.</p>
+            <button onclick="exitFullscreen()" class="bg-bg-secondary hover:bg-bg-tertiary text-white font-bold px-8 py-4 rounded-2xl transition border border-border-standard">
+                Sortir du plein écran
+            </button>
+        </div>
+    </div>
+    
+</div>
+
+<style>
+/* Optimisations responsive avancées */
+@media (max-width: 640px) {
+    .exam-room-container {
+        padding-bottom: 80px; /* Space for floating button */
+    }
+    
+    #questionCard {
+        margin-bottom: 80px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .sidebar {
+        position: sticky !important;
+        top: 80px;
+    }
+}
+
+/* Animations fluides */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Smooth transitions */
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+}
+</style>
+
+<script>
+// Données examen depuis Django
+const EXAM_DATA = {
+    id: '{{ exam.id }}',
+    titre: '{{ exam.titre }}',
+    matiere: '{{ exam.matiere }}',
+    duree_minutes: {{ exam.duree_minutes }},
+    nb_questions: {{ exam.nb_questions }},
+    points_par_question: {{ exam.points_par_question }},
+    questions: [{% for q in questions %}{id: '{{ q.id }}', text: `{{ q.text|escapejs }}`, options: [{% for opt in q.choices.all %}{text: '{{ opt.text|escapejs }}'}]{% endfor %}], type: '{{ q.type }}'{% if not forloop.last %},{% endif %}{% endfor %}]
+};
+
+let currentQuestion = 0;
+let answers = Array(EXAM_DATA.nb_questions).fill(null);
+let startTime = null;
+let timerInterval = null;
+let submittedAt = null;
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    loadQuestions();
+    setupAntiCheat();
+    setupFileUpload();
+});
+
+// Charger les questions
+function loadQuestions() {
+    const question = EXAM_DATA.questions[currentQuestion];
+    
+    document.getElementById('qNumBadge').textContent = currentQuestion + 1;
+    document.getElementById('qNumText').textContent = currentQuestion + 1;
+    document.getElementById('questionText').textContent = question.text;
+    document.getElementById('pointsBadge').textContent = `${EXAM_DATA.points_par_question} pts`;
+    
+    // Update progress bar
+    const progress = ((currentQuestion + 1) / EXAM_DATA.nb_questions) * 100;
+    document.getElementById('progressBar').style.width = `${progress}%`;
+    document.getElementById('progressPercent').textContent = `${Math.round(progress)}%`;
+    
+    // Update navigation buttons
+    document.getElementById('prevBtn').disabled = currentQuestion === 0;
+    
+    if (currentQuestion === EXAM_DATA.nb_questions - 1) {
+        document.getElementById('nextBtn').classList.add('hidden');
+        document.getElementById('finishBtn').classList.remove('hidden');
+    } else {
+        document.getElementById('nextBtn').classList.remove('hidden');
+        document.getElementById('finishBtn').classList.add('hidden');
+    }
+    
+    // Afficher/hide types de réponse selon type de question
+    showAnswerType(question.type);
+}
+
+// Afficher le bon type de réponse
+function showAnswerType(type) {
+    const optionsContainer = document.getElementById('optionsContainer');
+    const textResponseContainer = document.getElementById('textResponseContainer');
+    const fileUploadContainer = document.getElementById('fileUploadContainer');
+    
+    // Reset containers
+    optionsContainer.classList.add('hidden');
+    textResponseContainer.classList.add('hidden');
+    fileUploadContainer.classList.add('hidden');
+    
+    switch(type) {
+        case 'qcm':
+            optionsContainer.classList.remove('hidden');
+            renderOptions();
+            break;
+        case 'texte':
+            textResponseContainer.classList.remove('hidden');
+            setupTextareaCounter();
+            break;
+        case 'upload':
+            fileUploadContainer.classList.remove('hidden');
+            break;
+    }
+}
+
+// Render options QCM
+function renderOptions() {
+    const question = EXAM_DATA.questions[currentQuestion];
+    const container = document.getElementById('optionsContainer');
+    
+    let html = '';
+    question.options.forEach((opt, idx) => {
+        const isSelected = answers[currentQuestion] === idx;
+        html += `
+            <button onclick="selectOption(${idx})" 
+                    class="w-full text-left p-4 rounded-xl border-2 transition hover:scale-[1.02] ${isSelected ? 'border-accent bg-accent/10' : 'border-border-standard hover:border-accent'}">
+                <div class="flex items-center gap-3">
+                    <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-accent bg-accent' : 'border-border-standard'}">
+                        ${isSelected ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                    </div>
+                    <span class="text-white">${opt.text}</span>
+                </div>
+            </button>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Sélectionner option
+function selectOption(idx) {
+    answers[currentQuestion] = idx;
+    renderOptions();
+}
+
+// Setup textarea counter
+function setupTextareaCounter() {
+    const textarea = document.getElementById('answerTextarea');
+    const counter = document.getElementById('charCount');
+    
+    textarea.addEventListener('input', () => {
+        counter.textContent = `${textarea.value.length} caractères`;
+    });
+}
+
+// Navigation
+function nextQuestion() {
+    if (currentQuestion < EXAM_DATA.nb_questions - 1) {
+        currentQuestion++;
+        loadQuestions();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        loadQuestions();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+// Timer functionality
+function startTimer() {
+    startTime = Date.now();
+    const endTime = startTime + (EXAM_DATA.duree_minutes * 60 * 1000);
+    
+    timerInterval = setInterval(() => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - startTime) / 1000);
+        const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+        
+        // Format HH:MM:SS
+        const formatTime = (seconds) => {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        };
+        
+        document.getElementById('timerDisplay').textContent = formatTime(remaining);
+        document.getElementById('elapsedTime').textContent = formatTime(elapsed);
+        
+        // Alertes temps restant
+        if (remaining <= 300 && remaining > 60) {
+            document.getElementById('timerDisplay').parentElement.classList.add('animate-pulse');
+        } else if (remaining <= 60) {
+            document.getElementById('timerDisplay').classList.add('text-red-600');
+        }
+        
+        // Temps écoulé
+        if (remaining === 0) {
+            autoSubmitExam();
+        }
+    }, 1000);
+}
+
+// Soumettre l'examen
+function submitExam() {
+    if (!confirm('Êtes-vous sûr de vouloir soumettre votre examen?')) {
+        return;
+    }
+    
+    submittedAt = Date.now();
+    
+    // Vérifier réponses
+    const unanswered = answers.filter(a => a === null).length;
+    if (unanswered > 0) {
+        if (!confirm(`${unanswered} question(s) sans réponse. Voulez-vous vraiment soumettre?`)) {
+            return;
+        }
+    }
+    
+    // Envoyer données
+    fetch('/api/compositions/submit/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            exam_id: EXAM_DATA.id,
+            answers: answers,
+            submission_time: new Date().toISOString(),
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            clearInterval(timerInterval);
+            showCompletedState();
+        } else {
+            alert('Erreur lors de la soumission: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de réseau. Veuillez réessayer.');
+    });
+}
+
+// Auto-submit when time expires
+function autoSubmitExam() {
+    clearInterval(timerInterval);
+    submitExam();
+}
+
+// Show completed state
+function showCompletedState() {
+    document.getElementById('examInterface').classList.add('hidden');
+    document.getElementById('completedSection').classList.remove('hidden');
+    document.getElementById('completedSection').classList.add('fade-in');
+}
+
+// Fullscreen management
+function enterFullAndStartExam() {
+    if (document.fullscreenEnabled) {
+        document.documentElement.requestFullscreen();
+    }
+    
+    document.getElementById('welcomeSection').classList.add('hidden');
+    document.getElementById('examInterface').classList.remove('hidden');
+    document.getElementById('examInterface').classList.add('fade-in');
+    
+    startTimer();
+}
+
+function exitFullscreen() {
+    if (document.fullscreenEnabled && document.fullscreenElement) {
+        document.exitFullscreen();
+    }
+    location.reload();
+}
+
+// Toggle sidebar mobile
+function toggleSidebar() {
+    const sidebar = document.getElementById('infoSidebar');
+    sidebar.classList.toggle('-translate-x-full');
+}
+
+// Notifications
+function openNotifications() {
+    const dropdown = document.getElementById('notificationDropdown');
+    dropdown.classList.remove('translate-x-full');
+    fetchNotifications();
+}
+
+function closeNotifications() {
+    document.getElementById('notificationDropdown').classList.add('translate-x-full');
+}
+
+async function fetchNotifications() {
+    try {
+        const response = await fetch('/api/notifications/unread/');
+        const data = await response.json();
+        document.getElementById('unreadCount').textContent = data.unread_count;
+        // Load notifications list
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+    }
+}
+
+function markAllRead() {
+    fetch('/api/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(() => {
+        fetchNotifications();
+        closeNotifications();
+    });
+}
+
+// File upload for paper copy
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = `${(file.size / 1024).toFixed(2)} KB`;
+        document.getElementById('filePreview').classList.remove('hidden');
+    }
+}
+
+// Anti-cheat detection
+function setupAntiCheat() {
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            logCheatingAttempt('tab_change', 'L\'utilisateur a changé d\'onglet');
+        }
+    });
+    
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+            logCheatingAttempt('fullscreen_exit', 'Sortie du plein écran');
+        }
+    });
+}
+
+function logCheatingAttempt(type, description) {
+    fetch('/api/compositions/log-cheat/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ type, description })
+    });
+}
+
+// Utils
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

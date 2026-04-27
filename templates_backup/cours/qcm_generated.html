@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 glass rounded-xl">
+    <h2 class="text-2xl font-bold mb-4 text-accent">QCM Généré par IA</h2>
+    <div class="prose prose-invert max-w-none">
+        <pre class="whitespace-pre-wrap text-text-secondary">{{ qcm }}</pre>
+    </div>
+    <div class="mt-6 flex gap-4">
+        <a href="{% url 'create_qcm' course.id %}" class="px-6 py-2 bg-bg-tertiary rounded-lg font-bold">Re-générer</a>
+        <button class="px-6 py-2 bg-button-gradient rounded-lg font-bold">Sauvegarder</button>
+    </div>
+</div>
+{% endblock %}

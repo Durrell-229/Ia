@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Journal d'Audit - Académie Numérique{% endblock %}
+{% block content %}
+<div class="p-6 max-w-6xl mx-auto">
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold">Journal d'Audit</h1>
+            <p class="text-text-muted">Traçabilité complète de toutes les actions</p>
+        </div>
+        <a href="{% url 'export_data' %}?type=audit&format=csv" class="px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition">Export CSV</a>
+    </div>
+
+    <div class="p-6 rounded-2xl bg-bg-card border border-border-standard">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-border-standard">
+                        <th class="text-left py-3 px-2 font-medium text-text-muted">Horodatage</th>
+                        <th class="text-left py-3 px-2 font-medium text-text-muted">Utilisateur</th>
+                        <th class="text-left py-3 px-2 font-medium text-text-muted">Action</th>
+                        <th class="text-left py-3 px-2 font-medium text-text-muted">Ressource</th>
+                        <th class="text-left py-3 px-2 font-medium text-text-muted">Description</th>
+                        <th class="text-left py-3 px-2 font-medium text-text-muted">Sévérité</th>
+                        <th class="text-left py-3 px-2 font-medium text-text-muted">IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr class="border-b border-border-standard/50 hover:bg-bg-primary transition">
+                        <td class="py-3 px-2 text-xs text-text-muted">{{ log.timestamp|date:"d/m/Y H:i:s" }}</td>
+                        <td class="py-3 px-2">{{ log.user.full_name|default:"Système" }}</td>
+                        <td class="py-3 px-2">
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">{{ log.get_action_display }}</span>
+                        </td>
+                        <td class="py-3 px-2 text-text-muted">{{ log.resource_type }}</td>
+                        <td class="py-3 px-2 max-w-xs truncate">{{ log.description }}</td>
+                        <td class="py-3 px-2">
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                {% if log.severity == 'critical' %}bg-danger/10 text-danger
+                                {% elif log.severity == 'warning' %}bg-warning/10 text-warning
+                                else %}bg-success/10 text-success{% endif %}">
+                                {{ log.get_severity_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-2 text-xs text-text-muted">{{ log.ip_address|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="py-8 text-center text-text-muted">Aucune entrée dans le journal.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block layout %}
+<div class="h-full" x-data="{ sidebarOpen: false }">
+    <!-- Sidebar Desktop -->
+    <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+        <div class="flex grow flex-col gap-y-6 overflow-y-auto bg-bg-primary px-6 border-r border-bg-tertiary">
+            <div class="flex h-24 items-center border-b border-bg-tertiary/50">
+                <a href="/" class="text-2xl font-black text-white tracking-tighter italic">ACADÉMIE <span class="text-accent">IA</span></a>
+            </div>
+            <nav class="flex flex-1 flex-col mt-4">
+                {% include 'partials/_nav_links.html' %}
+                <div class="mt-auto pb-8">
+                    <a href="{% url 'logout' %}" class="flex gap-x-3 rounded-2xl p-3 text-sm font-bold text-text-muted hover:bg-danger/10 hover:text-danger transition-all">
+                        <i class="fa-solid fa-power-off text-lg"></i> Déconnexion
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar et Top Nav -->
+    <div class="lg:pl-72 flex flex-col h-full">
+        <div class="sticky top-0 z-40 flex h-20 items-center gap-x-4 border-b border-bg-tertiary bg-bg-primary/80 backdrop-blur-md px-4 sm:px-6 lg:px-8">
+            <button @click="sidebarOpen = true" class="text-text-secondary lg:hidden"><i class="fa-solid fa-bars-staggered text-2xl"></i></button>
+            <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 items-center justify-between">
+                <div class="text-text-secondary font-medium text-sm">
+                    {% block breadcrumb %}{% endblock %}
+                </div>
+                <!-- Profile Mini-Card -->
+                <div class="flex items-center gap-4 bg-bg-secondary p-2 pr-4 rounded-2xl border border-bg-tertiary shadow-sm">
+                    <div class="h-10 w-10 rounded-xl bg-button-gradient flex items-center justify-center text-white font-black shadow-lg shadow-primary/20">
+                        {{ user.email|slice:":1"|upper }}
+                    </div>
+                    <div class="hidden md:block text-left">
+                        <p class="text-xs font-bold text-white">{{ user.get_full_name|default:user.email }}</p>
+                        <p class="text-[10px] text-text-muted uppercase font-black tracking-widest">{{ user.get_role_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Content -->
+        <main class="py-10 px-4 sm:px-6 lg:px-8 flex-grow">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

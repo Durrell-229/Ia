@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}QCM en Cours | Académie Numérique{% endblock %}
+{% block breadcrumb %}
+  <a href="{% url 'dashboard' %}" class="hover:text-primary transition">Dashboard</a>
+  <span class="mx-2 text-text-muted">/</span>
+  <a href="{% url 'qcm_start' %}" class="hover:text-primary transition">QCM</a>
+  <span class="mx-2 text-text-muted">/</span>
+  <span class="text-white font-semibold">Composition</span>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto" x-data="{ submitting: false, timeLeft: 2400, interval: null }"
+  x-init="interval = setInterval(() => { if(timeLeft > 0) timeLeft--; else clearInterval(interval); }, 1000)">
+
+  <!-- HEADER + TIMER -->
+  <div class="animate-in flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-black tracking-tight">QCM <span class="gradient-text">en cours</span></h1>
+      <p class="text-xs text-text-muted mt-0.5">Répondez attentivement à chaque question</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="glass px-4 py-2 rounded-xl border border-border-standard flex items-center gap-2">
+        <i class="fa-solid fa-clock text-warning text-sm"></i>
+        <span class="font-black text-warning font-mono text-sm"
+          x-text="Math.floor(timeLeft/60).toString().padStart(2,'0') + ':' + (timeLeft%60).toString().padStart(2,'0')"></span>
+      </div>
+      <span class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-danger/10 border border-danger/20 text-danger text-xs font-black">
+        <span class="live-dot" style="background:#DC2626; box-shadow:0 0 0 4px rgba(220,38,38,0.15);"></span>
+        Live
+      </span>
+    </div>
+  </div>
+
+  <!-- CONTENU QCM GÉNÉRÉ PAR L'IA -->
+  <div class="animate-in delay-1 glass rounded-2xl border border-border-standard overflow-hidden mb-5">
+    <div class="px-6 py-4 border-b border-border-standard flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+        <i class="fa-solid fa-brain text-primary text-sm"></i>
+      </div>
+      <div>
+        <p class="text-xs font-black uppercase tracking-widest text-text-muted">Généré par IA Gemini</p>
+        <p class="text-sm font-bold text-white">Questions de l'évaluation</p>
+      </div>
+    </div>
+    <div class="p-6">
+      <div class="bg-bg-tertiary rounded-xl p-5 text-sm leading-relaxed text-text-secondary border border-border-standard whitespace-pre-wrap font-mono">{{ qcm }}</div>
+    </div>
+  </div>
+
+  <!-- ZONE DE RÉPONSE -->
+  <form method="post" action="{% url 'qcm_submit' %}" @submit.prevent="submitting = true; $el.submit()" class="animate-in delay-2 space-y-4">
+    {% csrf_token %}
+
+    <div class="glass rounded-2xl border border-border-standard p-6">
+      <h3 class="font-black text-sm uppercase tracking-wider flex items-center gap-2 mb-4">
+        <i class="fa-solid fa-pen-to-square text-accent"></i> Vos réponses
+      </h3>
+      <p class="text-xs text-text-muted mb-3">
+        Indiquez vos réponses clairement. Ex : <strong class="text-white">Q1: A, Q2: B, C, Q3: D...</strong>
+      </p>
+      <textarea name="reponses" required rows="8"
+        class="w-full bg-bg-tertiary border border-border-standard rounded-xl px-4 py-3 text-white text-sm focus:border-primary transition outline-none resize-none font-mono placeholder-text-muted"
+        placeholder="Entrez vos réponses ici...&#10;Q1: A&#10;Q2: B&#10;Q3: C, D&#10;..."></textarea>
+    </div>
+
+    <div class="flex items-center justify-between gap-4">
+      <a href="{% url 'qcm_start' %}" class="px-5 py-3 rounded-xl glass border border-border-standard text-sm font-bold text-text-muted hover:text-danger hover:border-danger/30 transition flex items-center gap-2">
+        <i class="fa-solid fa-xmark"></i> Abandonner
+      </a>
+      <button type="submit" class="px-8 py-3 rounded-xl bg-button-gradient text-white text-sm font-black shadow-lg shadow-primary/20 hover:opacity-90 transition flex items-center gap-2"
+        :disabled="submitting">
+        <template x-if="!submitting">
+          <span class="flex items-center gap-2"><i class="fa-solid fa-paper-plane"></i> Soumettre pour correction</span>
+        </template>
+        <template x-if="submitting">
+          <span class="flex items-center gap-2">
+            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            Correction en cours...
+          </span>
+        </template>
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Plans d'Abonnement | Académie IA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-20 px-6">
+    <div class="text-center mb-20 space-y-4">
+        <h1 class="text-6xl font-black tracking-tighter text-white">Élevez votre <span class="text-primary italic">Potentiel</span></h1>
+        <p class="text-text-secondary text-xl max-w-2xl mx-auto font-medium">Choisissez le plan qui correspond à vos ambitions académiques.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        {% for plan in plans %}
+        <div class="glass p-12 rounded-[3.5rem] border border-border-standard relative flex flex-col {% if plan.is_popular %}border-primary/50 shadow-[0_0_80px_rgba(99,102,241,0.15)] scale-105 z-10{% endif %}">
+            {% if plan.is_popular %}
+            <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-white">Recommandé</div>
+            {% endif %}
+            
+            <div class="mb-10">
+                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">{{ plan.name }}</span>
+                <h3 class="text-4xl font-black mt-2 text-white">{{ plan.price }}€<span class="text-lg text-text-muted font-medium">/mois</span></h3>
+            </div>
+
+            <ul class="space-y-6 mb-12 flex-grow">
+                {% for feature in plan.features %}
+                <li class="flex items-center gap-4 text-sm text-text-secondary">
+                    <div class="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                        <i class="fa-solid fa-check text-[10px]"></i>
+                    </div>
+                    {{ feature }}
+                </li>
+                {% endfor %}
+            </ul>
+
+            {% if current_subscription and current_subscription.plan.id == plan.id %}
+            <button disabled class="w-full py-6 rounded-2xl bg-bg-tertiary/30 border border-border-standard text-text-muted font-black uppercase text-xs tracking-widest">Plan Actuel</button>
+            {% else %}
+            <a href="{% url 'subscribe' plan.id %}" class="block w-full py-6 rounded-2xl text-center font-black uppercase text-xs tracking-widest transition-all {% if plan.is_popular %}bg-button-gradient shadow-xl hover:scale-105{% else %}bg-bg-tertiary/30 border border-border-standard hover:bg-bg-tertiary/50{% endif %}">
+                S'abonner
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .glass { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(20px); }
+</style>
+{% endblock %}

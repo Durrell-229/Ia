@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto glass p-10 rounded-3xl">
+    <h1 class="text-3xl font-bold mb-6 text-white">Règles de l'examen</h1>
+    <div class="space-y-4 text-text-muted mb-10">
+        <p class="flex items-start"><i class="fas fa-check-circle text-success mt-1 mr-3"></i> La caméra doit rester activée pendant toute la durée de l'épreuve.</p>
+        <p class="flex items-start"><i class="fas fa-check-circle text-success mt-1 mr-3"></i> Le mode plein écran est obligatoire.</p>
+        <p class="flex items-start"><i class="fas fa-check-circle text-success mt-1 mr-3"></i> Tout changement d'onglet sera enregistré comme une tentative de triche.</p>
+        <p class="flex items-start"><i class="fas fa-check-circle text-success mt-1 mr-3"></i> Après 3 avertissements, vous serez automatiquement exclu.</p>
+    </div>
+    <div class="flex flex-col space-y-4">
+        <a href="../room_online/" class="bg-primary py-4 rounded-xl font-bold text-center hover:bg-primary/80 transition">
+            Démarrer en ligne (Feuille virtuelle)
+        </a>
+        <a href="../room_paper/" class="border border-border-standard py-4 rounded-xl font-bold text-center hover:bg-bg-tertiary transition">
+            Démarrer sur papier (Capture caméra)
+        </a>
+    </div>
+</div>
+{% endblock %}

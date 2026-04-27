@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+
+{% block title %}Composition — {{ exam.titre }} | Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="fixed inset-0 bg-bg-primary z-[100] flex flex-col overflow-hidden animate-in">
+    <!-- Barre de Status de l'Examen -->
+    <div class="h-20 bg-bg-secondary/80 backdrop-blur-xl border-b border-border-standard px-6 md:px-10 flex items-center justify-between">
+        <div class="flex items-center gap-4 md:gap-6">
+            <!-- Animation Lottie (Substitut avec CSS/FontAwesome si pas de script Lottie) -->
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center relative">
+                <div class="absolute inset-0 rounded-full border-2 border-primary/30 animate-[spin_3s_linear_infinite]"></div>
+                <div class="absolute inset-2 rounded-full border-2 border-accent/30 animate-[spin_2s_linear_infinite_reverse]"></div>
+                <i class="fa-solid fa-satellite-dish text-primary text-sm animate-pulse"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-black uppercase tracking-[0.3em] text-primary flex items-center gap-2">
+                    <span class="live-dot"></span> Session Active
+                </span>
+                <h1 class="text-lg md:text-xl font-black text-white tracking-tighter truncate max-w-xs md:max-w-md">{{ exam.titre }}</h1>
+            </div>
+        </div>
+        
+        <!-- Timer IA RÉEL -->
+        <div class="hidden md:flex items-center gap-6 glass px-6 py-2.5 rounded-2xl border border-border-standard">
+            <div class="flex items-center gap-2 text-warning">
+                <i class="fa-solid fa-clock animate-pulse"></i>
+                <span class="text-xl font-mono font-black tabular-nums" id="exam-timer" data-duration="{{ exam.duree_minutes }}">--:--:--</span>
+            </div>
+            <div class="h-6 w-px bg-bg-tertiary/30"></div>
+            <div class="flex items-center gap-2 text-success">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest">Anti-Cheat Actif</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="md:hidden flex items-center gap-2 text-warning glass px-3 py-1.5 rounded-xl border border-border-standard">
+                <i class="fa-solid fa-clock text-xs"></i>
+                <span class="text-sm font-mono font-black tabular-nums" id="exam-timer-mobile" data-duration="{{ exam.duree_minutes }}">--:--</span>
+            </div>
+            <a href="{% url 'dashboard' %}" class="bg-danger/10 hover:bg-danger/20 text-danger px-4 md:px-6 py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all border border-danger/20 hover:border-danger/50">
+                Abandonner
+            </a>
+        </div>
+    </div>
+
+    <!-- Interface Split-Screen -->
+    <div class="flex-grow flex flex-col lg:flex-row overflow-hidden">
+        <!-- Zone Épreuve (PDF / Texte) -->
+        <div class="w-full lg:w-1/2 p-4 md:p-8 border-r border-border-standard overflow-y-auto bg-bg-primary/60 relative">
+            <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
+            
+            <div class="max-w-3xl mx-auto space-y-6 relative z-10">
+                <!-- En-tête Sujet -->
+                <div class="glass rounded-2xl p-6 border border-border-standard flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-black">{{ exam.matiere.nom }}</h2>
+                        <p class="text-xs text-text-muted mt-1 uppercase tracking-widest">{{ exam.get_type_exam_display }} Officiel</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-bg-tertiary/30 flex items-center justify-center text-text-muted">
+                        <i class="fa-solid fa-file-pdf text-xl"></i>
+                    </div>
+                </div>
+
+                <!-- Contenu Sujet -->
+                <div class="bg-bg-card rounded-[1.5rem] p-2 md:p-4 shadow-2xl min-h-[600px] md:min-h-[800px] relative overflow-hidden group">
+                    <!-- Watermark -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] rotate-[-45deg] select-none">
+                        <span class="text-6xl font-black text-text-muted whitespace-nowrap">{{ user.matricule|default:user.email }}</span>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none h-full">
+                        {% if files %}
+                            {% for f in files %}
+                                {% if f.fichier %}
+                                    <iframe src="{{ f.fichier.url }}#toolbar=0" class="w-full h-[600px] md:h-[800px] rounded-xl border-0 bg-bg-tertiary"></iframe>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="p-8 text-text-primary">
+                                <h3 class="text-xl font-bold mb-6 border-b-2 border-border-standard pb-4">Sujet :</h3>
+                                <p class="leading-relaxed whitespace-pre-line text-lg">{{ exam.description|default:"Aucun sujet texte ou fichier fourni pour cette épreuve." }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone de Réponse / Caméra -->
+        <div class="w-full lg:w-1/2 p-4 md:p-8 flex flex-col gap-6 bg-bg-secondary overflow-y-auto">
+            
+            <!-- Feedback Caméra (Anti-Cheat RÉEL) -->
+            <div class="h-48 md:h-64 glass rounded-2xl border border-border-standard relative overflow-hidden group flex-shrink-0">
+                <video id="webcam" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover opacity-50 grayscale transition group-hover:grayscale-0"></video>
+                <div class="absolute inset-0 bg-gradient-to-t from-bg-primary/80 via-transparent to-transparent"></div>
+                <div class="absolute top-0 left-0 w-full h-1 bg-primary/50 animate-[scan_3s_linear_infinite]"></div>
+                
+                <div class="absolute top-4 right-4 flex items-center gap-2">
+                    <span class="px-2 py-1 rounded bg-bg-primary/80 backdrop-blur text-[9px] font-mono text-white border border-border-standard" id="cheat-status">NORMAL</span>
+                </div>
+
+                <div class="absolute bottom-4 left-4 bg-success/20 backdrop-blur-md px-4 py-2 rounded-xl border border-success/30 flex items-center gap-3">
+                    <span class="live-dot"></span>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-success leading-none">Surveillance IA : Active</p>
+                        <p class="text-[8px] text-success/80 mt-1 uppercase tracking-widest">Visage détecté</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone de Soumission RÉELLE -->
+            <form action="{% url 'submit_paper' session.id %}" method="POST" enctype="multipart/form-data" class="flex-grow flex flex-col gap-4" id="exam-form">
+                {% csrf_token %}
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-black flex items-center gap-2">
+                        <i class="fa-solid fa-pen-nib text-accent"></i> Espace de Composition
+                    </h3>
+                </div>
+                
+                <!-- TinyMCE Rich Text Editor -->
+                <div class="flex-grow rounded-xl overflow-hidden border border-border-standard shadow-inner bg-bg-card">
+                    <textarea id="tinymce-editor" name="reponse_texte" class="w-full h-full min-h-[300px] hidden" placeholder="Rédigez votre composition ici..."></textarea>
+                </div>
+                
+                <div class="flex items-center gap-2 text-xs text-text-muted mb-2">
+                    <i class="fa-solid fa-circle-info"></i> Ou scannez votre copie physique :
+                </div>
+
+                <div x-data="{ files: 0 }" class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-shrink-0">
+                    <label class="relative glass border border-border-standard py-4 px-4 rounded-xl flex items-center justify-center gap-3 hover:bg-bg-tertiary/30 transition cursor-pointer group">
+                        <div class="w-10 h-10 rounded-lg bg-bg-tertiary flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-camera text-lg text-text-muted group-hover:text-white transition-colors"></i>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <span class="text-xs font-black uppercase tracking-widest block">Uploader copie physique</span>
+                            <span class="text-[9px] text-text-muted" x-text="files > 0 ? files + ' fichier(s) sélectionné(s)' : 'Photo (JPG/PNG) ou PDF'"></span>
+                        </div>
+                        <input type="file" name="copies" multiple accept="image/*,.pdf" class="hidden" @change="files = $event.target.files.length">
+                    </label>
+
+                    <button type="button" onclick="confirmSubmit()" class="relative bg-button-gradient py-4 px-4 rounded-xl text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/40 transition flex items-center justify-center gap-2 overflow-hidden group">
+                        <span class="absolute inset-0 bg-bg-tertiary/30 translate-y-full group-hover:translate-y-0 transition-transform"></span>
+                        <i class="fa-solid fa-paper-plane relative z-10"></i>
+                        <span class="relative z-10">Soumettre l'examen</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation -->
+<div id="submit-modal" class="fixed inset-0 bg-bg-primary/90 backdrop-blur-sm z-[200] hidden items-center justify-center opacity-0 transition-opacity">
+    <div class="bg-bg-secondary border border-border-standard rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-transform" id="submit-modal-content">
+        <div class="w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-4 border border-warning/20">
+            <i class="fa-solid fa-triangle-exclamation text-2xl text-warning"></i>
+        </div>
+        <h3 class="text-xl font-black text-center mb-2">Terminer l'examen ?</h3>
+        <p class="text-sm text-text-muted text-center mb-6">Vous êtes sur le point de soumettre définitivement votre copie. Cette action est irréversible.</p>
+        <div class="flex gap-3">
+            <button onclick="closeModal()" class="flex-1 py-3 rounded-xl glass border border-border-standard text-xs font-bold hover:bg-bg-tertiary/30 transition">Annuler</button>
+            <button onclick="submitWithTinyMCE()" class="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/80 text-white text-xs font-bold transition shadow-lg shadow-primary/30">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<!-- TinyMCE CDN -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+    // Configuration TinyMCE
+    tinymce.init({
+        selector: '#tinymce-editor',
+        height: 400,
+        menubar: false,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount', 'codesample'
+        ],
+        toolbar: 'undo redo | blocks | ' +
+            'bold italic backcolor | alignleft aligncenter ' +
+            'alignright alignjustify | bullist numlist outdent indent | ' +
+            'table codesample | removeformat | help',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        setup: function (editor) {
+            editor.on('change', function () {
+                editor.save();
+            });
+        }
+    });
+
+    function submitWithTinyMCE() {
+        tinymce.triggerSave();
+        document.getElementById('exam-form').submit();
+    }
+    // TIMER RÉEL
+    const timerDisplays = [document.getElementById('exam-timer'), document.getElementById('exam-timer-mobile')];
+    let duration = parseInt(timerDisplays[0].dataset.duration) * 60;
+
+    const formatTime = (seconds, isMobile) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        if (isMobile && h === 0) return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    };
+
+    const countdown = setInterval(() => {
+        timerDisplays[0].textContent = formatTime(duration, false);
+        if (timerDisplays[1]) timerDisplays[1].textContent = formatTime(duration, true);
+        
+        // Alerte visuelle quand < 5 minutes
+        if (duration === 300) {
+            timerDisplays.forEach(el => {
+                if(el) el.parentElement.classList.replace('text-warning', 'text-danger');
+                if(el) el.parentElement.classList.add('animate-pulse');
+            });
+        }
+
+        if (duration-- <= 0) {
+            clearInterval(countdown);
+            document.getElementById('exam-form').submit(); // Auto-submit
+        }
+    }, 1000);
+
+    // CAMÉRA RÉELLE (Juste affichage, l'anti-cheat réel se ferait en JS/WebRTC)
+    const video = document.getElementById('webcam');
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => {
+                console.error("Camera error:", err);
+                document.getElementById('cheat-status').textContent = 'CAMÉRA OFF';
+                document.getElementById('cheat-status').classList.add('text-danger', 'border-danger');
+            });
+    }
+
+    // Protection anti-triche basique côté client (Visibility, Copy/Paste)
+    let cheatScore = 0;
+    const cheatStatus = document.getElementById('cheat-status');
+
+    const registerCheat = (reason) => {
+        cheatScore++;
+        cheatStatus.textContent = `ALERTE (${cheatScore})`;
+        cheatStatus.classList.replace('text-white', 'text-danger');
+        cheatStatus.classList.replace('border-border-standard', 'border-danger');
+        setTimeout(() => {
+            cheatStatus.textContent = 'NORMAL';
+            cheatStatus.classList.replace('text-danger', 'text-white');
+            cheatStatus.classList.replace('border-danger', 'border-border-standard');
+        }, 3000);
+        
+        // Optionnel : Envoyer log au serveur via fetch()
+    };
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) registerCheat('TAB_CHANGE');
+    });
+
+    document.addEventListener('copy', e => { e.preventDefault(); registerCheat('COPY'); });
+    document.addEventListener('paste', e => { e.preventDefault(); registerCheat('PASTE'); });
+    document.addEventListener('contextmenu', e => { e.preventDefault(); registerCheat('RIGHT_CLICK'); });
+
+    // Gestion de la modale de soumission
+    const modal = document.getElementById('submit-modal');
+    const modalContent = document.getElementById('submit-modal-content');
+
+    function confirmSubmit() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeModal() {
+        modal.classList.add('opacity-0');
+        modalContent.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+</script>
+
+<style>
+    @keyframes scan { 
+        0% { top: 0; opacity: 0; } 
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 100%; opacity: 0; } 
+    }
+</style>
+{% endblock %}

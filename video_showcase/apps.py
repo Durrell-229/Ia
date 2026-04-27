@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class VideoShowcaseConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'video_showcase'
+    verbose_name = 'Vitrine Vidéo'

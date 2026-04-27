@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Inscription - Académie Numérique{% endblock %}
+{% block content %}
+<section class="min-h-screen flex items-center justify-center px-4 py-20" x-data="{ role: 'eleve' }">
+    <div class="w-full max-w-lg">
+        <div class="glass dark:glass rounded-3xl p-8 border border-white/20 shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                </div>
+                <h1 class="text-2xl font-bold">Créer un compte</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Rejoignez la plateforme mondiale</p>
+            </div>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Prénom</label>
+                        <input type="text" name="first_name" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Nom</label>
+                        <input type="text" name="last_name" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Email</label>
+                    <input type="email" name="email" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm" placeholder="votre@email.com">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Mot de passe</label>
+                    <input type="password" name="password" required minlength="8" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm" placeholder="8 caractères minimum">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Téléphone</label>
+                    <input type="tel" name="phone" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Pays</label>
+                        <select name="country" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm">
+                            <option value="France">France</option>
+                            <option value="Belgique">Belgique</option>
+                            <option value="Canada">Canada</option>
+                            <option value="Suisse">Suisse</option>
+                            <option value="Cote d'Ivoire">Côte d'Ivoire</option>
+                            <option value="Senegal">Sénégal</option>
+                            <option value="Maroc">Maroc</option>
+                            <option value="Tunisie">Tunisie</option>
+                            <option value="Algerie">Algérie</option>
+                            <option value="Gabon">Gabon</option>
+                            <option value="Cameroun">Cameroun</option>
+                            <option value="RDC">RDC</option>
+                            <option value="Etats-Unis">États-Unis</option>
+                            <option value="Royaume-Uni">Royaume-Uni</option>
+                            <option value="Allemagne">Allemagne</option>
+                            <option value="Espagne">Espagne</option>
+                            <option value="Italie">Italie</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Rôle</label>
+                        <select name="role" x-model="role" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm">
+                            <option value="eleve">Élève / Étudiant</option>
+                            <option value="professeur">Professeur</option>
+                            <option value="conseiller">Conseiller Pédagogique</option>
+                            <option value="admin">Administrateur</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div x-show="role !== 'eleve'" x-transition class="p-4 rounded-xl bg-warning/10 border border-warning/20">
+                    <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
+                        Mot de passe du rôle <span x-text="role"></span>
+                    </label>
+                    <input type="password" name="role_password" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm" placeholder="Requis pour ce rôle">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Niveau</label>
+                        <select name="niveau" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm">
+                            <option value="">-- Choisir --</option>
+                            <option value="primaire">Primaire</option>
+                            <option value="secondaire">Secondaire</option>
+                            <option value="universitaire">Universitaire</option>
+                            <option value="professionnel">Formation Professionnelle</option>
+                            <option value="entreprise">Entreprise</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Classe / Promotion</label>
+                        <input type="text" name="classe" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition shadow-sm" placeholder="Ex: Terminale S1">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 rounded-xl gradient-bg text-white font-semibold hover:opacity-90 transition shadow-lg shadow-primary/30 mt-2">
+                    Créer mon compte
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Déjà membre ?
+                    <a href="{% url 'login' %}" class="text-primary font-medium hover:underline">Se connecter</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

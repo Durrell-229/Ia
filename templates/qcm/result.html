@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Résultat QCM | Académie Numérique{% endblock %}
+{% block breadcrumb %}
+  <a href="{% url 'dashboard' %}" class="hover:text-primary transition">Dashboard</a>
+  <span class="mx-2 text-text-muted">/</span>
+  <a href="{% url 'qcm_start' %}" class="hover:text-primary transition">QCM</a>
+  <span class="mx-2 text-text-muted">/</span>
+  <span class="text-white font-semibold">Résultat</span>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+  <!-- SCORE HERO -->
+  <div class="animate-in relative overflow-hidden rounded-2xl p-8 text-center
+    {% if note >= 14 %}bg-gradient-to-br from-success/20 via-bg-card to-bg-card border border-success/20
+    {% elif note >= 10 %}bg-gradient-to-br from-warning/15 via-bg-card to-bg-card border border-warning/15
+    {% else %}bg-gradient-to-br from-danger/15 via-bg-card to-bg-card border border-danger/15{% endif %}">
+    <div class="absolute inset-0 opacity-5 pointer-events-none"
+      style="background: radial-gradient(circle at 50% 50%, white, transparent 70%)"></div>
+    <div class="relative">
+      <p class="text-xs font-black uppercase tracking-[0.3em] text-text-muted mb-3">Résultat de l'évaluation IA</p>
+      <div class="relative inline-flex items-center justify-center w-36 h-36 mx-auto mb-4">
+        <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(71,85,105,0.3)" stroke-width="2.5"/>
+          <circle cx="18" cy="18" r="15.9" fill="none"
+            stroke="{% if note >= 14 %}#059669{% elif note >= 10 %}#D97706{% else %}#DC2626{% endif %}"
+            stroke-width="2.5" stroke-dasharray="{{ note|default:0 }}, 20" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <p class="text-5xl font-black {% if note >= 14 %}text-success{% elif note >= 10 %}text-warning{% else %}text-danger{% endif %}">
+            {{ note }}
+          </p>
+          <p class="text-sm text-text-muted font-bold">/20</p>
+        </div>
+      </div>
+      <p class="text-2xl font-black mb-1">
+        {% if note >= 16 %}🏆 Excellent !
+        {% elif note >= 14 %}🎉 Très bien !
+        {% elif note >= 12 %}👍 Bien
+        {% elif note >= 10 %}✅ Passable
+        {% else %}💪 À améliorer
+        {% endif %}
+      </p>
+      <p class="text-sm text-text-secondary">Correction par Intelligence Artificielle</p>
+    </div>
+  </div>
+
+  <!-- DÉTAILS CORRECTION -->
+  <div class="animate-in delay-1 glass rounded-2xl border border-border-standard overflow-hidden">
+    <div class="px-6 py-4 border-b border-border-standard flex items-center gap-2">
+      <i class="fa-solid fa-magnifying-glass text-primary"></i>
+      <h3 class="font-black text-sm uppercase tracking-wider">Détails de la correction</h3>
+    </div>
+    <div class="p-6">
+      <div class="bg-bg-tertiary rounded-xl p-5 text-sm leading-relaxed text-text-secondary border border-border-standard whitespace-pre-wrap">
+        {{ feedback.corrections|default:"Aucun détail disponible." }}
+      </div>
+    </div>
+  </div>
+
+  <!-- REMÉDIATION -->
+  <div class="animate-in delay-2 glass rounded-2xl border border-success/10 overflow-hidden">
+    <div class="px-6 py-4 border-b border-border-standard flex items-center gap-2">
+      <i class="fa-solid fa-lightbulb text-success"></i>
+      <h3 class="font-black text-sm uppercase tracking-wider text-success">Conseils de remédiation</h3>
+    </div>
+    <div class="p-6">
+      <div class="bg-success/5 rounded-xl p-5 text-sm leading-relaxed text-text-secondary border border-success/10 whitespace-pre-wrap">
+        {{ feedback.remediation|default:"Continuez à pratiquer régulièrement !" }}
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="animate-in delay-3 flex flex-wrap items-center justify-center gap-4 pt-2">
+    <a href="{% url 'qcm_start' %}" class="px-6 py-3 rounded-xl glass border border-border-standard text-sm font-bold hover:bg-bg-tertiary/30 transition flex items-center gap-2">
+      <i class="fa-solid fa-rotate-right"></i> Nouveau QCM
+    </a>
+    <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-xl glass border border-border-standard text-sm font-bold hover:bg-bg-tertiary/30 transition flex items-center gap-2">
+      <i class="fa-solid fa-gauge-high"></i> Tableau de bord
+    </a>
+    <a href="{% url 'ia_corrections_list' %}" class="px-6 py-3 rounded-xl bg-button-gradient text-white text-sm font-black shadow-lg shadow-primary/20 hover:opacity-90 transition flex items-center gap-2">
+      <i class="fa-solid fa-chart-bar"></i> Voir tous mes résultats
+    </a>
+  </div>
+
+</div>
+{% endblock %}

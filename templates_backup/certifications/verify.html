@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Vérification de Certificat - Académie Numérique{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 py-20">
+    <div class="w-full max-w-lg">
+        <div class="glass dark:glass rounded-3xl p-8 border border-white/20 shadow-2xl text-center">
+            {% if succes %}
+            <div class="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h1 class="text-2xl font-bold text-success mb-2">Certificat Valide</h1>
+            <p class="text-slate-500 mb-6">Ce certificat est authentique et vérifié.</p>
+
+            <div class="text-left space-y-3 p-4 rounded-xl bg-slate-50 dark:bg-dark-bg">
+                <div class="flex justify-between"><span class="text-slate-500">Titre</span><span class="font-medium">{{ certificate.titre }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Délivré à</span><span class="font-medium">{{ certificate.eleve.full_name }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Type</span><span class="font-medium">{{ certificate.get_type_certificat_display }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Date</span><span class="font-medium">{{ certificate.date_delivrance|date:"d/m/Y" }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Institution</span><span class="font-medium">{{ certificate.institution|default:"Académie Numérique" }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Statut</span><span class="font-medium text-success">{{ certificate.get_statut_display }}</span></div>
+                {% if certificate.note_obtenue %}
+                <div class="flex justify-between"><span class="text-slate-500">Note</span><span class="font-medium">{{ certificate.note_obtenue }}/{{ certificate.note_sur }}</span></div>
+                {% endif %}
+                <div class="flex justify-between"><span class="text-slate-500">Vérifications</span><span class="font-medium">{{ certificate.nb_verifications }}</span></div>
+            </div>
+
+            {% if certificate.pdf %}
+            <a href="{{ certificate.pdf.url }}" target="_blank" class="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl gradient-bg text-white font-medium hover:opacity-90 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Télécharger le certificat PDF
+            </a>
+            {% endif %}
+            {% else %}
+            <div class="w-20 h-20 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h1 class="text-2xl font-bold text-danger mb-2">Certificat Invalide</h1>
+            <p class="text-slate-500">Ce certificat n'a pas pu être vérifié. Il pourrait être révoqué ou falsifié.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

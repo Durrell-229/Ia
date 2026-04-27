@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block layout %}
+<div class="min-h-screen flex flex-col">
+    <!-- Navbar Marketing -->
+    <nav class="fixed top-6 inset-x-0 z-50 flex justify-center px-6">
+        <div class="glass px-8 py-3 rounded-full flex items-center gap-10 border border-border-standard shadow-2xl">
+            <a href="/" class="text-xl font-black italic tracking-tighter">AN <span class="text-primary">IA</span></a>
+            <div class="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-widest text-text-secondary">
+                <a href="/#features" class="hover:text-white transition">Features</a>
+                <a href="/#ia" class="hover:text-white transition">Technologie</a>
+            </div>
+            <div class="flex items-center gap-4 border-l border-border-standard pl-8">
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="bg-button-gradient px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Mon Espace</a>
+                {% else %}
+                <a href="{% url 'login' %}" class="text-[10px] font-black uppercase tracking-widest hover:text-primary transition">Login</a>
+                <a href="{% url 'register' %}" class="bg-button-gradient px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Start</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-20 px-6">
+    <!-- Certificat Interactif -->
+    <div class="relative bg-bg-secondary text-text-primary rounded-[2.5rem] p-16 shadow-2xl overflow-hidden border-[16px] border-border-standard group">
+        <!-- Filigrane de fond -->
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
+            <i class="fa-solid fa-graduation-cap text-[40rem]"></i>
+        </div>
+
+        <div class="relative z-10 text-center space-y-12">
+            <!-- Header du Certificat -->
+            <div class="flex justify-between items-center mb-10">
+                <span class="text-xs font-black uppercase tracking-[0.4em] text-text-muted">Certificat d'Excellence Numérique</span>
+                <span class="text-xs font-black uppercase tracking-[0.4em] text-text-muted">ID: {{ certificate.id|truncatechars:12 }}</span>
+            </div>
+
+            <div class="space-y-4">
+                <h1 class="text-6xl font-serif italic text-text-primary">Certificat de Réussite</h1>
+                <p class="text-xl text-text-muted font-medium">Ce document officiel atteste que</p>
+            </div>
+
+            <div class="py-8">
+                <h2 class="text-7xl font-black tracking-tighter text-primary underline decoration-primary/30 underline-offset-8">{{ user.get_full_name|upper }}</h2>
+            </div>
+
+            <div class="max-w-2xl mx-auto">
+                <p class="text-lg text-text-muted leading-relaxed">
+                    A complété avec succès le programme d'élite de l'Académie IA concernant la matière <br>
+                    <span class="font-bold text-text-primary">"{{ certificate.exam.matiere.nom }}"</span> <br>
+                    avec une mention d'excellence décernée par notre algorithme de correction neuronale.
+                </p>
+            </div>
+
+            <!-- Signatures et Sceaux -->
+            <div class="grid grid-cols-3 gap-12 pt-16 border-t border-border-standard">
+                <div class="text-center">
+                    <p class="font-serif italic text-xl mb-2">Gemini 2.0</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-text-muted border-t border-border-standard pt-2">Correcteur IA Chef</p>
+                </div>
+                <div class="flex justify-center">
+                    <div class="w-24 h-24 rounded-full border-4 border-primary flex items-center justify-center p-2">
+                        <div class="w-full h-full rounded-full bg-primary flex items-center justify-center text-white">
+                            <i class="fa-solid fa-award text-3xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <p class="font-serif italic text-xl mb-2">{{ user.date_joined|date:"d M Y" }}</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-text-muted border-t border-border-standard pt-2">Date de Délivrance</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Effet de reflet brillant au survol -->
+        <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-bg-tertiary/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-center gap-6 mt-16">
+        <button class="bg-button-gradient px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-105 transition">
+            Télécharger en PDF HD
+        </button>
+        <button class="bg-bg-tertiary/50 border border-border-standard px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-bg-tertiary transition">
+            Partager sur LinkedIn
+        </button>
+    </div>
+</div>
+{% endblock %}

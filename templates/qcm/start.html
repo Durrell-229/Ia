@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}QCM Intelligent | Académie Numérique{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{% url 'dashboard' %}" class="hover:text-primary transition">Dashboard</a>
+  <span class="mx-2 text-text-muted">/</span>
+  <span class="text-text-primary font-semibold">QCM Intelligent</span>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-black text-white mb-3">
+            <i class="fas fa-clipboard-check text-accent mr-3"></i>
+            QCM Intelligent Multi-Provider
+        </h1>
+        <p class="text-lg text-text-muted max-w-2xl mx-auto">
+            Génération automatique par IA (Groq/Gemini/Mistral/DeepSeek) · Correction instantanée · 
+            <strong class="text-accent">Bulletin PDF généré automatiquement</strong>
+        </p>
+    </div>
+    
+    <form method="post" action="{% url 'qcm_start' %}" class="bg-bg-card backdrop-blur-sm rounded-3xl p-8 border border-border-standard shadow-2xl">
+        {% csrf_token %}
+        
+        <!-- Configuration QCM -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label class="block text-sm font-bold text-text-secondary mb-2">Matière *</label>
+                <select name="matiere" required class="w-full bg-bg-secondary text-white px-4 py-3 rounded-xl border border-border-standard focus:border-accent focus:ring-2 focus:ring-accent transition">
+                    <option value="">Choisir une matière</option>
+                    <option value="Mathématiques">Mathématiques</option>
+                    <option value="Physique-Chimie">Physique-Chimie</option>
+                    <option value="SVT">Sciences de la Vie et de la Terre</option>
+                    <option value="Français">Français</option>
+                    <option value="Anglais">Anglais</option>
+                    <option value="Histoire-Géographie">Histoire-Géographie</option>
+                    <option value="Philosophie">Philosophie</option>
+                    <option value="Informatique">Informatique</option>
+                    <option value="Économie">Économie</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold text-text-secondary mb-2">Classe *</label>
+                <select name="classe" required class="w-full bg-bg-secondary text-white px-4 py-3 rounded-xl border border-border-standard focus:border-accent focus:ring-2 focus:ring-accent transition">
+                    <option value="">Choisir une classe</option>
+                    <option value="6ème">6ème</option>
+                    <option value="5ème">5ème</option>
+                    <option value="4ème">4ème</option>
+                    <option value="3ème">3ème</option>
+                    <option value="Seconde">Seconde</option>
+                    <option value="Première">Première</option>
+                    <option value="Terminale">Terminale</option>
+                    <option value="Licence 1">Licence 1</option>
+                    <option value="Licence 2">Licence 2</option>
+                    <option value="Master 1">Master 1</option>
+                    <option value="Master 2">Master 2</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div>
+                <label class="block text-sm font-bold text-text-secondary mb-2">Nombre de questions</label>
+                <select name="nb_questions" class="w-full bg-bg-secondary text-white px-4 py-3 rounded-xl border border-border-standard focus:border-accent focus:ring-2 focus:ring-accent transition">
+                    <option value="5">5 questions (Rapide)</option>
+                    <option value="10" selected>10 questions (Standard)</option>
+                    <option value="15">15 questions (Approfondi)</option>
+                    <option value="20">20 questions (Examen complet)</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold text-text-secondary mb-2">Niveau de difficulté</label>
+                <select name="difficulte" class="w-full bg-bg-secondary text-white px-4 py-3 rounded-xl border border-border-standard focus:border-accent focus:ring-2 focus:ring-accent transition">
+                    <option value="facile">Facile</option>
+                    <option value="moyen" selected>Moyen</option>
+                    <option value="difficile">Difficile</option>
+                    <option value="mixte">Mixte (Recommandé)</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold text-text-secondary mb-2">Thème précis (optionnel)</label>
+                <input type="text" name="theme" placeholder="Ex: Algèbre, Révolution..."
+                    class="w-full bg-bg-secondary text-white px-4 py-3 rounded-xl border border-border-standard focus:border-accent focus:ring-2 focus:ring-accent transition placeholder-text-muted">
+            </div>
+        </div>
+        
+        <!-- Features box -->
+        <div class="bg-gradient-to-r from-accent/10 via-primary/10 to-success/10 border-l-4 border-accent p-6 rounded-r-2xl mb-8">
+            <h3 class="font-bold text-white mb-3 flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                Fonctionnement amélioré du système QCM
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="bg-accent/20 p-2 rounded-lg">
+                        <i class="fas fa-robot text-accent"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-white text-sm">Génération IA Multi-Provider</p>
+                        <p class="text-xs text-text-muted">Groq → Gemini → Mistral → DeepSeek</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="bg-blue/20 p-2 rounded-lg">
+                        <i class="fas fa-bolt text-blue-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-white text-sm">Correction Instantanée</p>
+                        <p class="text-xs text-text-muted">Feedback détaillé immédiat</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="bg-green/20 p-2 rounded-lg">
+                        <i class="fas fa-file-pdf text-green-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-white text-sm">Bulletin Auto</p>
+                        <p class="text-xs text-text-muted">Stockage automatique dans dashboard</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="bg-yellow/20 p-2 rounded-lg">
+                        <i class="fas fa-star text-yellow-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-white text-sm">Appréciation IA</p>
+                        <p class="text-xs text-text-muted">Feedback pédagogique personnalisé</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="flex justify-between items-center">
+            <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-xl bg-bg-tertiary border border-border-standard text-sm font-bold text-text-muted hover:text-text-primary transition">
+                Annuler
+            </a>
+            
+            <button type="submit" class="px-8 py-3 rounded-xl bg-primary text-white text-sm font-black shadow-lg hover:bg-primary/80 transition">
+                <i class="fas fa-magic mr-2"></i>Générer le QCM
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Focus animations
+document.querySelectorAll('select, input').forEach(el => {
+    el.addEventListener('focus', () => el.classList.add('ring-2', 'ring-accent'));
+    el.addEventListener('blur', () => el.classList.remove('ring-2', 'ring-accent'));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 glass rounded-xl text-white">
+    <h2 class="text-3xl font-bold mb-6">Liste des Cours</h2>
+    
+    {% if user.is_staff %}
+    <div class="mb-6">
+        <a href="{% url 'cours:create_course' %}" class="px-6 py-3 bg-accent font-bold rounded-lg hover:opacity-90">
+            + Créer un nouveau cours
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for course in courses %}
+        <div class="p-4 bg-bg-secondary rounded-xl border border-bg-tertiary">
+            <h3 class="text-xl font-bold">{{ course.title }}</h3>
+            <p class="text-text-secondary mt-2">{{ course.description|truncatewords:20 }}</p>
+            <a href="{% url 'cours:detail' course.id %}" class="mt-4 inline-block text-accent font-bold">Voir le cours</a>
+        </div>
+        {% empty %}
+        <p>Aucun cours publié pour le moment.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Détail de la Correction - Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+    <div class="glass p-10 rounded-[3rem] flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="space-y-2 text-center md:text-left">
+            <h1 class="text-4xl font-black text-white leading-tight">{{ session.exam.titre }}</h1>
+            <p class="text-text-muted">Analyse pédagogique générée par l'IA pour {{ session.eleve.full_name }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-primary to-accent p-8 rounded-[2rem] text-center shadow-2xl">
+            <div class="text-5xl font-black text-white">{{ session.resultat.note }}</div>
+            <div class="text-xs font-bold text-white/70 uppercase tracking-widest mt-1">Score Final</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+            <h2 class="text-xl font-bold text-white flex items-center gap-3">
+                <i class="fas fa-list-check text-primary"></i> Détails par question
+            </h2>
+            {% for detail in session.resultat.ai_correction.details.all %}
+            <div class="glass p-6 rounded-3xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-text-secondary">Question {{ detail.question_number }}</span>
+                    <span class="text-sm font-black text-primary">{{ detail.note_partielle }} Pts</span>
+                </div>
+                <p class="text-sm text-text-muted leading-relaxed">{{ detail.commentaire }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="space-y-6">
+            <h2 class="text-xl font-bold text-white flex items-center gap-3">
+                <i class="fas fa-brain text-accent"></i> Observation Globale
+            </h2>
+            <div class="glass p-6 rounded-3xl border-t-4 border-accent">
+                <p class="text-sm text-text-secondary leading-[1.8] italic">"{{ session.resultat.appreciation }}"</p>
+            </div>
+            <button class="w-full bg-bg-secondary hover:bg-bg-tertiary py-4 rounded-2xl font-bold text-white transition flex items-center justify-center gap-3">
+                <i class="fas fa-file-pdf"></i> Télécharger le rapport
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

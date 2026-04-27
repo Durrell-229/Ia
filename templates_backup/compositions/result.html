@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% block title %}Résultat — {{ session.exam.titre }} | Académie Numérique{% endblock %}
+{% block breadcrumb %}
+  <a href="{% url 'dashboard' %}" class="hover:text-primary transition">Dashboard</a>
+  <span class="mx-2 text-text-muted">/</span>
+  <span class="text-white font-semibold">Résultat</span>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- ═══ HEADER RÉSULTAT ═══ -->
+  <div class="animate-in relative overflow-hidden rounded-2xl p-6 bg-bg-card border border-white/5">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-accent/5 pointer-events-none"></div>
+    <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-[0.25em] text-text-muted mb-2">Résultat de composition</p>
+        <h1 class="text-xl md:text-2xl font-black tracking-tight">{{ session.exam.titre }}</h1>
+        <p class="text-sm text-text-secondary mt-1">
+          {{ session.exam.matiere.nom|default:"" }} •
+          {{ session.exam.get_type_exam_display }} •
+          Durée : {{ session.exam.duree_minutes }} min
+        </p>
+      </div>
+      <a href="{% url 'dashboard' %}" class="px-5 py-2.5 rounded-xl glass border border-white/10 text-sm font-bold hover:bg-white/5 transition flex items-center gap-2 flex-shrink-0">
+        <i class="fa-solid fa-arrow-left"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  {% if resultat %}
+  <!-- ═══ NOTE PRINCIPALE ═══ -->
+  <div class="animate-in delay-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Note -->
+    <div class="md:col-span-1">
+      <div class="glass rounded-2xl border border-white/5 p-8 text-center">
+        <p class="text-xs font-black uppercase tracking-widest text-text-muted mb-4">Note finale</p>
+        <div class="relative inline-flex items-center justify-center">
+          <svg width="120" height="120" viewBox="0 0 120 120" class="-rotate-90">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/>
+            <circle cx="60" cy="60" r="50" fill="none"
+              stroke="{% if resultat.note >= 16 %}#10B981{% elif resultat.note >= 12 %}#6366F1{% elif resultat.note >= 10 %}#F59E0B{% else %}#EF4444{% endif %}"
+              stroke-width="8"
+              stroke-linecap="round"
+              stroke-dasharray="314"
+              stroke-dashoffset="{{ circle_offset|default:'94' }}"/>
+          </svg>
+          <div class="absolute text-center">
+            <p class="text-3xl font-black {% if resultat.note >= 16 %}note-excellent{% elif resultat.note >= 12 %}note-bien{% elif resultat.note >= 10 %}note-moyen{% else %}note-insuffisant{% endif %}">
+              {{ resultat.note }}
+            </p>
+            <p class="text-xs text-text-muted font-bold">/{{ resultat.note_sur }}</p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold
+            {% if resultat.note >= 16 %}bg-success/10 text-success
+            {% elif resultat.note >= 12 %}bg-info/10 text-info
+            {% elif resultat.note >= 10 %}bg-warning/10 text-warning
+            {% else %}bg-danger/10 text-danger{% endif %}">
+            {% if resultat.mention %}{{ resultat.get_mention_display }}{% else %}
+              {% if resultat.note >= 18 %}Excellent{% elif resultat.note >= 16 %}Très Bien{% elif resultat.note >= 14 %}Bien{% elif resultat.note >= 12 %}Assez Bien{% elif resultat.note >= 10 %}Passable{% else %}Insuffisant{% endif %}
+            {% endif %}
+          </span>
+        </div>
+
+        {% if resultat.classement > 0 %}
+        <div class="mt-4 pt-4 border-t border-white/5">
+          <p class="text-xs text-text-muted">Classement</p>
+          <p class="text-lg font-black text-primary">{{ resultat.classement }}<span class="text-xs text-text-muted font-normal"> / {{ resultat.total_participants }}</span></p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Infos détaillées -->
+    <div class="md:col-span-2 space-y-4">
+      <!-- Statistiques -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="glass p-4 rounded-xl border border-white/5 text-center">
+          <p class="text-xs text-text-muted mb-1">Corrigé par</p>
+          <p class="font-black">
+            {% if resultat.corrige_par_ia %}🤖 IA{% elif resultat.corrige_par_humain %}👨‍🏫 Professeur{% else %}⏳ En attente{% endif %}
+          </p>
+        </div>
+        <div class="glass p-4 rounded-xl border border-white/5 text-center">
+          <p class="text-xs text-text-muted mb-1">Temps passé</p>
+          <p class="font-black font-mono">
+            {% if session.time_spent_seconds %}
+              {{ session.time_spent_seconds|floatformat:0 }}s
+            {% else %}—{% endif %}
+          </p>
+        </div>
+        <div class="glass p-4 rounded-xl border border-white/5 text-center">
+          <p class="text-xs text-text-muted mb-1">Soumis le</p>
+          <p class="font-black text-sm">{{ session.submitted_at|date:"d/m/Y H:i"|default:"—" }}</p>
+        </div>
+        <div class="glass p-4 rounded-xl border border-white/5 text-center">
+          <p class="text-xs text-text-muted mb-1">Corrigé le</p>
+          <p class="font-black text-sm">{{ resultat.corrige_at|date:"d/m/Y H:i"|default:"—" }}</p>
+        </div>
+      </div>
+
+      <!-- Appréciation -->
+      {% if resultat.appreciation %}
+      <div class="glass p-5 rounded-xl border border-white/5">
+        <p class="text-xs font-black uppercase tracking-widest text-text-muted mb-2">Appréciation du correcteur</p>
+        <p class="text-sm text-text-secondary leading-relaxed">{{ resultat.appreciation }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Bulletin PDF -->
+      {% if resultat.bulletin_pdf %}
+      <a href="{{ resultat.bulletin_pdf.url }}" target="_blank"
+         class="flex items-center justify-between p-5 rounded-xl bg-primary/5 border border-primary/20 hover:bg-primary/10 transition">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <i class="fa-solid fa-file-pdf text-lg"></i>
+          </div>
+          <div>
+            <p class="font-bold text-sm">Bulletin scolaire PDF</p>
+            <p class="text-xs text-text-muted">Télécharger le bulletin généré automatiquement</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-download text-primary"></i>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ═══ DÉTAILS PAR QUESTION ═══ -->
+  {% if resultat.details_correction and resultat.details_correction.details %}
+  <div class="animate-in delay-2 glass rounded-2xl border border-white/5 overflow-hidden">
+    <div class="px-6 py-4 border-b border-white/5">
+      <h3 class="font-black text-sm uppercase tracking-wider flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-primary"></i> Correction détaillée par question
+      </h3>
+    </div>
+    <div class="divide-y divide-white/5">
+      {% for det in resultat.details_correction.details %}
+      <div class="px-6 py-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-sm">Question {{ det.question }}</span>
+          <span class="px-3 py-1 rounded-lg bg-primary/10 text-primary text-xs font-black">
+            {{ det.note_partielle }} pts
+          </span>
+        </div>
+        {% if det.commentaire %}
+        <p class="text-sm text-text-secondary leading-relaxed">{{ det.commentaire }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- ═══ EN ATTENTE DE CORRECTION ═══ -->
+  <div class="animate-in delay-1 glass rounded-2xl border border-white/5 p-12 text-center">
+    <div class="w-16 h-16 rounded-2xl bg-warning/10 flex items-center justify-center mx-auto mb-4">
+      <i class="fa-solid fa-hourglass-half text-2xl text-warning"></i>
+    </div>
+    <h2 class="text-xl font-black mb-2">Résultat en attente</h2>
+    <p class="text-sm text-text-muted max-w-sm mx-auto mb-6">
+      Votre copie est en cours de traitement par notre système de correction.
+      Elle sera disponible dans quelques instants.
+    </p>
+    <div class="flex items-center justify-center gap-3">
+      <a href="{% url 'dashboard' %}" class="px-6 py-2.5 rounded-xl glass border border-white/10 text-sm font-bold hover:bg-white/5 transition">
+        Retour au dashboard
+      </a>
+      <button onclick="location.reload()" class="px-6 py-2.5 rounded-xl bg-button-gradient text-white text-sm font-bold hover:opacity-90 transition">
+        <i class="fa-solid fa-refresh mr-1"></i> Actualiser
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══ ACTIONS ═══ -->
+  <div class="animate-in delay-3 flex flex-wrap gap-3 justify-end">
+    <a href="{% url 'exam_list' %}" class="px-5 py-2.5 rounded-xl glass border border-white/10 text-sm font-bold hover:bg-white/5 transition flex items-center gap-2">
+      <i class="fa-solid fa-layer-group"></i> Autres épreuves
+    </a>
+    <a href="{% url 'dashboard' %}" class="px-5 py-2.5 rounded-xl bg-button-gradient text-white text-sm font-bold hover:opacity-90 transition flex items-center gap-2 shadow-lg shadow-primary/20">
+      <i class="fa-solid fa-house"></i> Dashboard
+    </a>
+  </div>
+
+</div>
+
+{% if resultat %}
+<script>
+// Animation du cercle de score
+const note = {{ resultat.note }};
+const noteSur = {{ resultat.note_sur }};
+const pct = note / noteSur;
+const circumference = 2 * Math.PI * 50; // r=50
+const offset = circumference - (pct * circumference);
+document.querySelector('circle:last-child').setAttribute('stroke-dashoffset', offset.toFixed(1));
+</script>
+{% endif %}
+{% endblock %}

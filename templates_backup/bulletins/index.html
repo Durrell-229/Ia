@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Mes Bulletins - Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <h1 class="text-3xl font-black text-white px-2">Bulletins de Notes</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for bulletin in bulletins %}
+        <div class="glass p-8 rounded-[2.5rem] border-t-8 border-accent group hover:bg-slate-800/40 transition">
+            <div class="flex justify-between items-center mb-6">
+                <i class="fas fa-file-invoice text-4xl text-accent group-hover:scale-110 transition-transform"></i>
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">{{ bulletin.annee_scolaire }}</p>
+                    <p class="text-xs font-bold text-slate-300">{{ bulletin.get_periode_display }}</p>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">{{ bulletin.eleve.full_name }}</h3>
+            <p class="text-sm text-slate-400 mb-8">{{ bulletin.classe.nom }}</p>
+            <div class="flex gap-3">
+                <a href="{% url 'bulletins:detail' bulletin.id %}" class="flex-1 bg-accent py-3 rounded-xl text-center font-bold text-dark-bg text-sm">Consulter</a>
+                {% if bulletin.fichier_pdf %}
+                <a href="{{ bulletin.fichier_pdf.url }}" class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-300 hover:text-white transition"><i class="fas fa-download"></i></a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-20 bg-slate-800/20 rounded-[3rem] border-2 border-dashed border-slate-800">
+            <i class="fas fa-folder-open text-6xl text-slate-800 mb-4"></i>
+            <p class="text-slate-500 italic">Aucun bulletin n'a été publié pour le moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

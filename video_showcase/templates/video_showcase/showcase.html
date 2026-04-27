@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Académie Numérique IA - Découvrez le Futur de l'Éducation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ─── EXIT BUTTON ─── */
+        .exit-btn {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(79, 70, 229, 0.5);
+            border-radius: 9999px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 40px rgba(79, 70, 229, 0.3);
+            text-decoration: none;
+        }
+
+        .exit-btn:hover {
+            background: rgba(79, 70, 229, 0.9);
+            transform: scale(1.05);
+            box-shadow: 0 15px 50px rgba(79, 70, 229, 0.5);
+        }
+
+        .exit-btn i {
+            font-size: 1.1rem;
+        }
+
+        /* ─── BACKGROUND GRADIENT ─── */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, #1E293B 0%, #0F172A 50%, #000 100%);
+            z-index: 0;
+        }
+
+        .bg-particles {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(79, 70, 229, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 80%, rgba(8, 145, 178, 0.1) 0%, transparent 50%);
+            animation: bgShift 20s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(2%, -2%); }
+            50% { transform: translate(-2%, 2%); }
+            75% { transform: translate(2%, 2%); }
+        }
+
+        /* ─── MAIN SHOWCASE CONTAINER ─── */
+        .showcase-container {
+            position: relative;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ─── OBLIQUE SLIDING TRACKS ─── */
+        .tracks-wrapper {
+            position: absolute;
+            inset: 0;
+            transform: rotate(-8deg) scale(1.15);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 4rem 0;
+        }
+
+        .track {
+            display: flex;
+            gap: 1.5rem;
+            animation-duration: 40s;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        .track-1 { animation-name: slideLeft; }
+        .track-2 { animation-name: slideRight; animation-duration: 50s; }
+        .track-3 { animation-name: slideLeft; animation-duration: 45s; }
+        .track-4 { animation-name: slideRight; animation-duration: 55s; }
+        .track-5 { animation-name: slideLeft; animation-duration: 42s; }
+
+        @keyframes slideLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @keyframes slideRight {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); }
+        }
+
+        /* ─── VIDEO CARDS ─── */
+        .video-card {
+            flex: 0 0 380px;
+            height: 240px;
+            background: rgba(30, 41, 59, 0.9);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid rgba(79, 70, 229, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .video-card:hover {
+            transform: scale(1.08) rotate(2deg);
+            border-color: rgba(79, 70, 229, 0.8);
+            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.4);
+            z-index: 100;
+        }
+
+        .video-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .video-card:hover .video-overlay {
+            transform: translateY(0);
+        }
+
+        .video-overlay h3 {
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .video-overlay p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .video-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(79, 70, 229, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .video-badge.promo { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
+        .video-badge.tutorial { background: linear-gradient(135deg, #0891B2, #06B6D4); }
+        .video-badge.announcement { background: linear-gradient(135deg, #DC2626, #EF4444); }
+        .video-badge.testimonial { background: linear-gradient(135deg, #059669, #10B981); }
+        .video-badge.feature { background: linear-gradient(135deg, #D97706, #F59E0B); }
+
+        /* ─── HERO TITLE ─── */
+        .hero-title {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .hero-title h1 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #FFFFFF 0%, #4F46E5 50%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        .hero-title p {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            font-weight: 500;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.95; }
+        }
+
+        /* ─── FLOATING ELEMENTS ─── */
+        .float-element {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.4) 0%, transparent 70%);
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .float-1 {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: -5%;
+            animation-delay: 0s;
+        }
+
+        .float-2 {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            right: -3%;
+            animation-delay: 2s;
+        }
+
+        .float-3 {
+            width: 250px;
+            height: 250px;
+            bottom: 10%;
+            left: 30%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.1); }
+        }
+
+        /* ─── SCROLL INDICATOR ─── */
+        .scroll-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            opacity: 0.7;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1200px) {
+            .video-card {
+                flex: 0 0 320px;
+                height: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .video-card {
+                flex: 0 0 280px;
+                height: 180px;
+            }
+
+            .exit-btn {
+                top: 1rem;
+                right: 1rem;
+                padding: 0.75rem 1.5rem;
+                font-size: 0.75rem;
+            }
+
+            .hero-title h1 {
+                font-size: 2rem;
+            }
+
+            .hero-title p {
+                font-size: 1rem;
+            }
+        }
+
+        /* ─── LOADING ANIMATION ─── */
+        .loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-ring {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(79, 70, 229, 0.2);
+            border-top-color: #4F46E5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-ring"></div>
+    </div>
+
+    <!-- Background -->
+    <div class="bg-gradient"></div>
+    <div class="bg-particles"></div>
+
+    <!-- Floating Elements -->
+    <div class="float-element float-1"></div>
+    <div class="float-element float-2"></div>
+    <div class="float-element float-3"></div>
+
+    <!-- Exit Button -->
+    <a href="/" class="exit-btn">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        Accéder à l'application
+    </a>
+
+    <!-- Hero Title -->
+    <div class="hero-title">
+        <h1>Académie Numérique IA</h1>
+        <p>Le futur de l'éducation commence ici</p>
+    </div>
+
+    <!-- Video Showcase -->
+    <div class="showcase-container">
+        <div class="tracks-wrapper">
+            {% for video in videos %}
+            <div class="track track-{{ forloop.counter|divisibleby:2|yesno:'2,1' }}">
+                <!-- Duplicate for infinite scroll -->
+                {% for i in "12345678901234567890" %}
+                <div class="video-card">
+                    <video 
+                        muted 
+                        loop 
+                        playsinline
+                        autoplay
+                        controlsList="nocontrols noremoteplayback nodownload"
+                        disablePictureInPicture
+                        poster="{{ video.thumbnail_url }}"
+                    >
+                        <source src="{{ video.video_url }}" type="video/mp4">
+                    </video>
+                    <div class="video-badge {{ video.category }}">{{ video.get_category_display }}</div>
+                    <div class="video-overlay">
+                        <h3>{{ video.title }}</h3>
+                        {% if video.description %}
+                        <p>{{ video.description|truncatechars:80 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <!-- Fallback cards if no videos -->
+            {% if not videos %}
+            {% for row in "12345" %}
+            <div class="track track-{{ row|divisibleby:2|yesno:'2,1' }}">
+                {% for i in "12345678901234567890" %}
+                <div class="video-card">
+                    <div style="width:100%;height:100%;background:linear-gradient(135deg, #1E293B, #334155);display:flex;align-items:center;justify-content:center;">
+                        <div style="text-align:center;color:white;">
+                            <i class="fa-solid fa-video" style="font-size:3rem;opacity:0.3;margin-bottom:1rem;"></i>
+                            <div style="font-size:0.875rem;opacity:0.5;">Vidéo {{ forloop.counter }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <i class="fa-solid fa-chevron-down"></i>
+        <span>Découvrez nos vidéos</span>
+    </div>
+
+    <script>
+        // Hide loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+            }, 800);
+        });
+
+        // Force autoplay on all videos - no pause allowed
+        document.querySelectorAll('.video-card video').forEach(video => {
+            video.muted = true;
+            video.loop = true;
+            video.controls = false;
+            video.play().catch(() => {});
+            
+            // Prevent any interaction
+            video.addEventListener('pause', () => {
+                video.play().catch(() => {});
+            });
+            
+            video.addEventListener('ended', () => {
+                video.currentTime = 0;
+                video.play().catch(() => {});
+            });
+        });
+
+        // Intersection Observer for auto-play
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target.querySelector('video');
+                if (video && entry.isIntersecting) {
+                    video.play().catch(() => {});
+                }
+            });
+        }, { threshold: 0.3 });
+
+        document.querySelectorAll('.video-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Parallax effect on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+            
+            document.querySelector('.tracks-wrapper').style.transform = 
+                `rotate(-8deg) scale(1.15) translate(${x}px, ${y}px)`;
+        });
+
+        // Force play every 2 seconds
+        setInterval(() => {
+            document.querySelectorAll('.video-card video').forEach(video => {
+                if (video.paused) {
+                    video.play().catch(() => {});
+                }
+            });
+        }, 2000);
+    </script>
+</body>
+</html>

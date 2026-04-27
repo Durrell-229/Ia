@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content_empty %}
+<div class="min-h-screen flex items-center justify-center px-6 relative overflow-hidden" style="background-color: #0F172A;">
+    <!-- Orbes en arriere-plan -->
+    <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px]"></div>
+
+    <div class="glass max-w-md w-full p-10 rounded-[3rem] border border-border-standard relative z-10" style="color: #F1F5F9;">
+        <div class="text-center mb-10">
+            <span class="text-3xl font-black italic tracking-tighter" style="color: #F1F5F9;">AN <span class="text-primary">IA</span></span>
+            <h2 class="text-2xl font-black mt-6 tracking-tight" style="color: #F1F5F9;">Content de vous revoir.</h2>
+            <p class="text-sm font-medium mt-2" style="color: #94A3B8;">Entrez vos identifiants pour acceder au portail.</p>
+        </div>
+
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-2xl text-sm font-bold {% if message.tags %}{% if 'error' in message.tags %}bg-danger/15 border border-danger/25{% elif 'success' in message.tags %}bg-success/15 border border-success/25{% else %}bg-info/15 border border-info/25{% endif %}{% else %}bg-info/15 border border-info/25{% endif %}" style="color: #F1F5F9;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label class="block text-[10px] font-black uppercase tracking-[0.2em] mb-2 ml-1" style="color: #94A3B8;">Email academique</label>
+                <input type="email" name="email" required class="w-full rounded-2xl px-6 py-4 focus:border-border-focus focus:ring-1 focus:ring-border-focus transition shadow-inner" placeholder="nom@etablissement.com">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black uppercase tracking-[0.2em] mb-2 ml-1" style="color: #94A3B8;">Mot de passe</label>
+                <input type="password" name="password" required class="w-full rounded-2xl px-6 py-4 focus:border-border-focus focus:ring-1 focus:ring-border-focus transition shadow-inner" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="w-full bg-button-gradient py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all" style="color: #F1F5F9;">
+                Se connecter
+            </button>
+        </form>
+
+        <div class="mt-10 text-center">
+            <p class="text-xs font-bold uppercase tracking-widest" style="color: #94A3B8;">
+                Pas encore de compte ?
+                <a href="{% url 'register' %}" class="text-primary hover:text-accent transition">S'inscrire</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

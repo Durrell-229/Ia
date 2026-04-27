@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Mon Profil | Académie Numérique{% endblock %}
+{% block breadcrumb %}
+  <a href="{% url 'dashboard' %}" class="hover:text-primary transition">Dashboard</a>
+  <span class="mx-2 text-text-muted">/</span>
+  <span class="text-white font-semibold">Profil</span>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6 animate-in">
+    <h1 class="text-2xl font-black tracking-tight">Mon <span class="gradient-text">Profil</span></h1>
+    <p class="text-sm text-text-muted mt-1">Mettez à jour vos informations personnelles et votre photo de profil.</p>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="animate-in delay-1 glass rounded-2xl border border-white/5 p-6 md:p-8">
+      
+      <!-- PHOTO DE PROFIL -->
+      <div class="flex flex-col md:flex-row items-center gap-6 mb-8 pb-8 border-b border-white/5" x-data="imageUploader()">
+        <div class="relative w-24 h-24 rounded-full border-4 border-bg-tertiary bg-white/5 flex items-center justify-center overflow-hidden shrink-0 group">
+          {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" alt="Avatar" class="w-full h-full object-cover" id="avatarPreview">
+          {% else %}
+            <span class="text-3xl font-black text-white" id="avatarInitials">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+            <img src="" alt="Avatar" class="w-full h-full object-cover hidden" id="avatarPreview">
+          {% endif %}
+          <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer" @click="$refs.fileInput.click()">
+            <i class="fa-solid fa-camera text-white mb-1"></i>
+            <span class="text-[8px] font-black uppercase text-white">Modifier</span>
+          </div>
+        </div>
+        <div class="text-center md:text-left flex-grow">
+          <h3 class="font-bold text-white">Photo de profil</h3>
+          <p class="text-xs text-text-muted mt-1 mb-3">JPG, PNG ou WebP. Max 5Mo.<br>Votre photo apparaîtra sur vos bulletins officiels.</p>
+          <input type="file" name="avatar" accept="image/*" class="hidden" x-ref="fileInput" @change="previewImage">
+          <button type="button" @click="$refs.fileInput.click()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-bold transition">
+            Parcourir les fichiers
+          </button>
+        </div>
+      </div>
+
+      <!-- INFORMATIONS PERSONNELLES -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Prénom *</label>
+          <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" required
+            class="w-full bg-bg-tertiary border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-primary transition outline-none">
+          {% if form.first_name.errors %}<p class="text-xs text-danger mt-1">{{ form.first_name.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Nom *</label>
+          <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" required
+            class="w-full bg-bg-tertiary border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-primary transition outline-none">
+          {% if form.last_name.errors %}<p class="text-xs text-danger mt-1">{{ form.last_name.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Téléphone</label>
+          <input type="text" name="phone" value="{{ form.phone.value|default:'' }}"
+            class="w-full bg-bg-tertiary border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-primary transition outline-none">
+          {% if form.phone.errors %}<p class="text-xs text-danger mt-1">{{ form.phone.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Email (Lecture seule)</label>
+          <input type="email" value="{{ user.email }}" disabled
+            class="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-text-muted text-sm cursor-not-allowed outline-none">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Biographie / Présentation</label>
+          <textarea name="bio" rows="4"
+            class="w-full bg-bg-tertiary border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-primary transition outline-none resize-none">{{ form.bio.value|default:'' }}</textarea>
+          {% if form.bio.errors %}<p class="text-xs text-danger mt-1">{{ form.bio.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="animate-in delay-2 flex items-center justify-end gap-4 pt-2">
+      <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-xl glass border border-white/10 text-sm font-bold text-text-muted hover:text-white hover:bg-white/5 transition">
+        Annuler
+      </a>
+      <button type="submit" class="px-8 py-3 rounded-xl bg-button-gradient text-white text-sm font-black shadow-lg shadow-primary/20 hover:opacity-90 transition flex items-center gap-2">
+        <i class="fa-solid fa-floppy-disk"></i> Enregistrer
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+function imageUploader() {
+    return {
+        previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const preview = document.getElementById('avatarPreview');
+                    const initials = document.getElementById('avatarInitials');
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    if(initials) initials.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

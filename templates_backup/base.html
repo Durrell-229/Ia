@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Académie Numérique{% endblock %}</title>
+    <meta name="description" content="Plateforme d'évaluation et de composition intelligente pour les grandes écoles">
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#8B5CF6',
+                        accent: '#06B6D4',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        info: '#3B82F6',
+                        'bg-primary': '#f8fafc',
+                        'bg-secondary': '#ffffff',
+                        'bg-tertiary': '#f1f5f9',
+                        'bg-card': '#ffffff',
+                        'text-primary': '#1e293b',
+                        'text-secondary': '#475569',
+                        'text-muted': '#64748b',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'hero-gradient': 'linear-gradient(135deg, #4f46e5 0%, #8B5CF6 50%, #06B6D4 100%)',
+                        'button-gradient': 'linear-gradient(135deg, #4f46e5, #3b82f6)',
+                        'card-gradient': 'linear-gradient(135deg, rgba(79,70,229,0.1), rgba(139,92,246,0.05))',
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 0.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(16px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Chart.js pour graphiques réels -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ═══ RESET GLOBAL : Formulaires visibles sur fond clair ═══ */
+        input, select, textarea, button, label, option, optgroup {
+            color: #1e293b;
+        }
+        input, select, textarea {
+            color: #1e293b !important;
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+        select option {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        [x-cloak] { display: none !important; }
+
+        /* Glass morphism — VISIBLE */
+        .glass {
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid #e2e8f0 !important;
+        }
+        .glass-sm {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(8px);
+            border: 1px solid #f1f5f9 !important;
+        }
+
+        /* Sidebar active link */
+        .nav-link { transition: all 0.2s ease; border-radius: 0.75rem; }
+        .nav-link:hover { background: rgba(79,70,229,0.08); color: #4f46e5; }
+        .nav-link.active { background: rgba(79,70,229,0.12); color: #4f46e5; }
+        .nav-link.active .nav-icon { color: #4f46e5; }
+
+        /* Scrollbar premium */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(79,70,229,0.3); border-radius: 99px; }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #4f46e5, #06B6D4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Stat card hover */
+        .stat-card { transition: all 0.2s ease; }
+        .stat-card:hover { transform: translateY(-2px); border-color: rgba(79,70,229,0.2); }
+
+        /* Pulse dot */
+        .live-dot {
+            width: 8px; height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: livePulse 1.5s infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+        }
+
+        /* Page loader */
+        #page-loader {
+            position: fixed; inset: 0;
+            background: #f8fafc;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.4s ease-out;
+        }
+        .loader-ring {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(79,70,229,0.15);
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast notifications */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            min-width: 280px; max-width: 400px;
+            padding: 14px 18px; border-radius: 12px;
+            font-size: 13px; font-weight: 600;
+            display: flex; align-items: center; gap: 10px;
+            animation: toastIn 0.3s ease-out forwards;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .toast.success { background: #dcfce7; border: 1px solid #10B981; color: #166534; }
+        .toast.error { background: #fee2e2; border: 1px solid #EF4444; color: #991b1b; }
+        .toast.info { background: #dbeafe; border: 1px solid #3B82F6; color: #1e40af; }
+        .toast.warning { background: #fef3c7; border: 1px solid #F59E0B; color: #92400e; }
+
+        /* Badge rarity colors */
+        .badge-commun { border-color: #cbd5e1; }
+        .badge-rare { border-color: #93c5fd; box-shadow: 0 0 12px rgba(59,130,246,0.15); }
+        .badge-epique { border-color: #c4b5fd; box-shadow: 0 0 12px rgba(139,92,246,0.2); }
+        .badge-legendaire { border-color: #fcd34d; box-shadow: 0 0 16px rgba(245,158,11,0.25); }
+
+        /* Note indicator colors */
+        .note-excellent { color: #10B981; }
+        .note-bien { color: #3B82F6; }
+        .note-moyen { color: #F59E0B; }
+        .note-insuffisant { color: #EF4444; }
+    </style>
+</head>
+<body class="h-full" x-data="{ sidebarOpen: true, mobileMenu: false }">
+
+    <!-- PAGE LOADER -->
+    <div id="page-loader">
+        <div class="text-center">
+            <div class="loader-ring mx-auto mb-4"></div>
+            <p class="text-xs font-bold uppercase tracking-[0.3em] text-text-muted">Académie Numérique</p>
+        </div>
+    </div>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const l = document.getElementById('page-loader');
+                if (l) { l.style.opacity = '0'; setTimeout(() => l.style.display = 'none', 400); }
+            }, 300);
+        });
+    </script>
+
+    <!-- DJANGO MESSAGES → Toast -->
+    {% if messages %}
+    <div class="toast-container" id="toast-container">
+        {% for message in messages %}
+        <div class="toast {{ message.tags }}" id="toast-{{ forloop.counter }}">
+            {% if message.tags == 'success' %}<i class="fa-solid fa-circle-check"></i>
+            {% elif message.tags == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
+            {% elif message.tags == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+            {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        document.querySelectorAll('.toast').forEach((t, i) => {
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(40px)'; t.style.transition = '0.3s'; setTimeout(() => t.remove(), 300); }, 4000 + i * 500);
+        });
+    </script>
+    {% endif %}
+
+    {% if user.is_authenticated and not is_home and not is_auth_page %}
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- ═══ SIDEBAR ═══ -->
+        <aside class="hidden lg:flex lg:flex-shrink-0" :class="sidebarOpen ? 'w-64' : 'w-16'" style="transition: width 0.2s ease;">
+            <div class="flex flex-col h-full w-full bg-bg-secondary border-r border-white/5">
+
+                <!-- Logo + Toggle -->
+                <div class="flex items-center justify-between px-4 h-16 border-b border-gray-200 flex-shrink-0">
+                    <a href="{% url 'dashboard' %}" class="flex items-center gap-3 overflow-hidden" x-show="sidebarOpen">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-graduation-cap text-white text-sm"></i>
+                        </div>
+                        <span class="font-black text-gray-900 tracking-tight whitespace-nowrap">ACADÉMIE <span class="text-indigo-600">IA</span></span>
+                    </a>
+                    <button @click="sidebarOpen = !sidebarOpen" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition flex-shrink-0">
+                        <i class="fa-solid" :class="sidebarOpen ? 'fa-chevron-left' : 'fa-bars'"></i>
+                    </button>
+                </div>
+
+                <!-- Nav -->
+                <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+
+                    <!-- Dashboard -->
+                    <a href="{% url 'dashboard' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700 {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="nav-icon fa-solid fa-gauge-high text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Tableau de bord</span>
+                    </a>
+
+                    {% if user.role in 'professeur,admin,conseiller' %}
+                    <!-- Section Gestion -->
+                    <div class="pt-4 pb-1" x-show="sidebarOpen">
+                        <p class="px-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Gestion</p>
+                    </div>
+
+                    <a href="{% url 'exam_list' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700 {% if request.resolver_match.url_name == 'exam_list' %}active{% endif %}">
+                        <i class="nav-icon fa-solid fa-layer-group text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Banque d'épreuves</span>
+                    </a>
+
+                    {% if user.role == 'professeur' or user.role == 'admin' %}
+                    <a href="{% url 'exam_create' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700 {% if request.resolver_match.url_name == 'exam_create' %}active{% endif %}">
+                        <i class="nav-icon fa-solid fa-file-circle-plus text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Nouvelle épreuve</span>
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'ia_corrections_list' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                        <i class="nav-icon fa-solid fa-robot text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Corrections IA</span>
+                    </a>
+
+                    <a href="{% url 'qcm_start' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700 {% if request.resolver_match.url_name == 'qcm_start' %}active{% endif %}">
+                        <i class="nav-icon fa-solid fa-list-check text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Générer un QCM IA</span>
+                    </a>
+                    {% endif %}
+
+                    {% if user.role == 'eleve' %}
+                    <!-- Section Élève -->
+                    <div class="pt-4 pb-1" x-show="sidebarOpen">
+                        <p class="px-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Mes compositions</p>
+                    </div>
+
+                    <a href="{% url 'exam_list' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700 {% if request.resolver_match.url_name == 'exam_list' %}active{% endif %}">
+                        <i class="nav-icon fa-solid fa-clipboard-list text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Mes épreuves</span>
+                    </a>
+
+                    <a href="{% url 'qcm_start' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700 {% if request.resolver_match.url_name == 'qcm_start' %}active{% endif %}">
+                        <i class="nav-icon fa-solid fa-list-check text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Évaluation QCM</span>
+                    </a>
+
+                    <a href="{% url 'ia_corrections_list' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                        <i class="nav-icon fa-solid fa-chart-bar text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Mes résultats</span>
+                    </a>
+
+                    <a href="{% url 'bulletins:index' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                        <i class="nav-icon fa-solid fa-file-invoice text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Mes bulletins</span>
+                    </a>
+                    {% endif %}
+
+                    {% if user.role == 'admin' or user.role == 'conseiller' %}
+                    <!-- Section Admin -->
+                    <div class="pt-4 pb-1" x-show="sidebarOpen">
+                        <p class="px-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Administration</p>
+                    </div>
+
+                    <a href="{% url 'supervision' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                        <i class="nav-icon fa-solid fa-users-gear text-base w-5 text-center flex-shrink-0"></i>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Supervision</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Notifications avec badge -->
+                    <div class="pt-4 pb-1" x-show="sidebarOpen">
+                        <p class="px-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Compte</p>
+                    </div>
+
+                    <a href="{% url 'notification_list' %}" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                        <div class="relative w-5 flex-shrink-0 flex items-center justify-center">
+                            <i class="nav-icon fa-solid fa-bell text-base"></i>
+                            {% if user.notifications.filter.is_read == False %}
+                            <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                            {% endif %}
+                        </div>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap">Notifications</span>
+                    </a>
+                </nav>
+
+                <!-- User Profile Footer -->
+                <div class="border-t border-gray-200 p-3 flex-shrink-0">
+                    <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 transition cursor-pointer" x-show="sidebarOpen" onclick="window.location.href='{% url 'profile_edit' %}'">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0 overflow-hidden">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" alt="Avatar" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ user.email|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-gray-900 truncate">{{ user.get_full_name|default:user.email }}</p>
+                            <p class="text-[9px] text-gray-500 uppercase tracking-widest truncate">{{ user.get_role_display }}</p>
+                        </div>
+                        <a href="{% url 'logout' %}" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-100 hover:text-red-600 text-gray-500 transition text-xs">
+                            <i class="fa-solid fa-power-off"></i>
+                        </a>
+                    </div>
+                    <a href="{% url 'logout' %}" class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 hover:text-red-600 text-gray-500 transition mx-auto" x-show="!sidebarOpen">
+                        <i class="fa-solid fa-power-off text-sm"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ═══ MAIN CONTENT ═══ -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+            <!-- TOP BAR -->
+            <header class="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-gray-200 bg-white/90 backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                    <!-- Mobile menu button -->
+                    <button @click="mobileMenu = !mobileMenu" class="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-text-muted hover:bg-white/5 hover:text-white transition">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <!-- Breadcrumb -->
+                    <div class="text-sm text-text-muted font-medium">
+                        {% block breadcrumb %}{% endblock %}
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- AI Status -->
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/3 border border-white/5 text-xs">
+                        <div class="live-dot"></div>
+                        <span class="text-text-muted font-medium">IA {{ AI_PROVIDER|default:"Gemini"|capfirst }}</span>
+                    </div>
+
+                    <!-- Notifications bell -->
+                    <a href="{% url 'notification_list' %}" class="relative w-9 h-9 rounded-xl flex items-center justify-center text-text-muted hover:text-white hover:bg-white/5 transition">
+                        <i class="fa-solid fa-bell"></i>
+                    </a>
+
+                    <!-- User chip -->
+                    <a href="{% url 'profile_edit' %}" class="flex items-center gap-2.5 bg-white/3 border border-white/5 rounded-xl px-3 py-1.5 hover:bg-white/10 transition">
+                        <div class="w-6 h-6 rounded-md bg-button-gradient flex items-center justify-center text-white font-black text-xs overflow-hidden">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" alt="Avatar" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ user.email|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="hidden sm:block">
+                            <p class="text-xs font-bold text-white leading-none">{{ user.first_name|default:user.email }}</p>
+                            <p class="text-[9px] text-text-muted uppercase tracking-widest leading-none mt-0.5">{{ user.get_role_display }}</p>
+                        </div>
+                    </a>
+                </div>
+            </header>
+
+            <!-- PAGE CONTENT -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <div class="max-w-screen-2xl mx-auto">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div x-show="mobileMenu" @click="mobileMenu = false" class="fixed inset-0 bg-black/60 z-40 lg:hidden" x-cloak></div>
+    {% else %}
+    <main>
+        {% block content_empty %}{% endblock %}
+    </main>
+    {% endif %}
+
+</body>
+</html>

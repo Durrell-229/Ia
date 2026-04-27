@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Salles de Réunion - Académie Numérique{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-white mb-2">
+                <i class="fa-solid fa-video text-primary mr-2"></i>
+                Salles de Réunion
+            </h1>
+            <p class="text-text-secondary">Rejoignez une salle ouverte ou créez votre propre réunion</p>
+        </div>
+        
+        {% if user.role in 'admin,conseiller' %}
+        <a href="{% url 'videoconf:create_room' %}" 
+           class="mt-4 md:mt-0 inline-flex items-center gap-2 px-6 py-3 bg-button-gradient text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg shadow-primary/25">
+            <i class="fa-solid fa-plus"></i>
+            Créer une salle
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Live Rooms -->
+    {% if rooms %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for room in rooms %}
+        <div class="glass rounded-2xl overflow-hidden hover-lift transition-all duration-300 hover:shadow-xl hover:shadow-primary/10">
+            <!-- Room Status Badge -->
+            <div class="relative">
+                <div class="h-2 bg-gradient-to-r from-primary via-secondary to-accent"></div>
+                <div class="absolute top-3 right-3">
+                    {% if room.status == 'live' %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full text-xs font-semibold text-red-400">
+                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        EN DIRECT
+                    </span>
+                    {% elif room.status == 'scheduled' %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-full text-xs font-semibold text-yellow-400">
+                        <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                        Planifiée
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Room Info -->
+            <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-1">{{ room.name }}</h3>
+                        <p class="text-sm text-text-muted">
+                            <i class="fa-solid fa-user mr-1"></i>
+                            {{ room.created_by.full_name }}
+                        </p>
+                    </div>
+                </div>
+
+                {% if room.description %}
+                <p class="text-sm text-text-secondary mb-4 line-clamp-2">{{ room.description }}</p>
+                {% endif %}
+
+                <!-- Stats -->
+                <div class="flex items-center gap-4 mb-4 text-sm">
+                    <div class="flex items-center gap-1.5 text-text-secondary">
+                        <i class="fa-solid fa-users text-primary"></i>
+                        <span>{{ room.participant_count }}/{{ room.max_participants }}</span>
+                    </div>
+                    {% if room.google_meet_link %}
+                    <div class="flex items-center gap-1.5 text-green-400">
+                        <i class="fa-solid fa-video"></i>
+                        <span>Google Meet</span>
+                    </div>
+                    {% endif %}
+                    {% if room.access_code %}
+                    <div class="flex items-center gap-1.5 text-yellow-400">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>Code requis</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2">
+                    <a href="{% url 'videoconf:room_detail' room.id %}" 
+                       class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary/20 border border-primary/50 text-primary font-semibold rounded-xl hover:bg-primary/30 transition">
+                        <i class="fa-solid fa-door-open"></i>
+                        {% if room.user_is_participant %}Rejoindre{% else %}Rejoindre{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="glass rounded-2xl p-12 text-center">
+        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center">
+            <i class="fa-solid fa-video text-primary text-3xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Aucune salle active</h3>
+        <p class="text-text-secondary mb-6">Il n'y a actuellement aucune salle de réunion ouverte.</p>
+        {% if user.role in 'admin,conseiller' %}
+        <a href="{% url 'videoconf:create_room' %}" 
+           class="inline-flex items-center gap-2 px-6 py-3 bg-button-gradient text-white font-semibold rounded-xl hover:opacity-90 transition">
+            <i class="fa-solid fa-plus"></i>
+            Créer la première salle
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

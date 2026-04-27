@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4" style="background: #1E293B; border: 1px solid #475569;">
+        <div class="card-header p-4" style="background: #4F46E5; color: #F1F5F9;">
+            <h2 class="mb-0">Révision Enseignant - IA</h2>
+        </div>
+        <div class="card-body p-5">
+            <h5 class="text-muted" style="color: #94A3B8;">Analyse de l'IA</h5>
+            <div class="p-3 rounded mb-4" style="background: #334155;">
+                <p style="color: #F1F5F9;">Note suggérée : <strong>{{ correction.note_ia }} / 20</strong></p>
+                <p style="color: #CBD5E1;">Commentaires : {{ correction.json_resultat.appreciation_globale }}</p>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label" style="color: #F1F5F9;">Note Finale</label>
+                    <input type="number" step="0.5" name="note" class="form-control" style="background: #0F172A; color: #F1F5F9; border: 1px solid #475569;" value="{{ correction.note_ia }}" required>
+                </div>
+                <button type="submit" class="btn btn-lg w-100" style="background: #059669; color: #F1F5F9; border: none;">Soumettre pour Révision Admin</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

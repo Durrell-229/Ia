@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Mes Badges - Académie Numérique{% endblock %}
+{% block content %}
+<div class="p-6 max-w-5xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold">Mes Badges</h1>
+        <p class="text-slate-500 dark:text-slate-400">Collectionnez des badges en progressant !</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {% for badge in all_badges %}
+        {% if badge.id in earned_ids %}
+        <div class="p-5 rounded-2xl bg-white dark:bg-dark-card border-2 border-primary/30 hover-lift text-center">
+            <div class="text-4xl mb-3">{{ badge.icone }}</div>
+            <h3 class="font-bold text-sm mb-1">{{ badge.nom }}</h3>
+            <p class="text-xs text-slate-500 mb-2">{{ badge.description }}</p>
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium
+                {% if badge.rarete == 'legendaire' %}bg-warning/10 text-warning
+                {% elif badge.rarete == 'epique' %}bg-secondary/10 text-secondary
+                {% elif badge.rarete == 'rare' %}bg-primary/10 text-primary
+                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                {{ badge.get_rarete_display }}
+            </span>
+            <p class="text-xs text-success mt-2 font-medium">+{{ badge.points }} XP</p>
+        </div>
+        {% else %}
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border opacity-50 text-center">
+            <div class="text-4xl mb-3 grayscale">🔒</div>
+            <h3 class="font-bold text-sm mb-1 text-slate-400">{{ badge.nom }}</h3>
+            <p class="text-xs text-slate-400">{{ badge.description }}</p>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
