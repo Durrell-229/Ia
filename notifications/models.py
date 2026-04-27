@@ -264,10 +264,64 @@ class NotificationTemplate(models.Model):
         """Rend une notification à partir du template avec variables"""
         titre = self.titre_template.format(**variables_dict)
         message = self.message_template.format(**variables_dict)
-        
+
         return Notification.objects.create(
             destinateur=recipient,
             titre=titre,
             message=message,
             extra_data={'template_id': str(self.id), 'variables': variables_dict},
         )
+
+
+class EmailQueue(models.Model):
+    """
+    File d'attente d'emails pour envoi asynchrone
+    Permet de queue les emails et gérer les tentatives/réessais
+    """
+    class Statut(models.TextChoices):
+        EN_ATTENTE = 'pending', _('En attente ⏳')
+        EN_COURS = 'sending', _('En cours d\'envoi 📤')
+        ENVOYE = 'sent', _('Envoyé ✅')
+        ECHEC = 'failed', _('Échoué ❌')
+        ANNULE = 'cancelled', _('Annulé 🚫')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Destinataire
+    destinataire = models.EmailField(_('destinataire'))
+    cc = models.EmailField(_('CC'), blank=True, null=True)
+    bcc = models.EmailField(_('BCC'), blank=True, null=True)
+
+    # Contenu
+    sujet = models.CharField(_('sujet'), max_length=300)
+    body_html = models.TextField(_('contenu HTML'), blank=True, null=True)
+    body_text = models.TextField(_('contenu texte'), blank=True, null=True)
+
+    # Tracking
+    statut = models.CharField(_('statut'), max_length=20, choices=Statut.choices, default=Statut.EN_ATTENTE)
+    tentatives = models.PositiveIntegerField(_('tentatives'), default=0)
+    max_tentatives = models.PositiveIntegerField(_('max tentatives'), default=3)
+    derniere_erreur = models.TextField(_('dernière erreur'), blank=True, null=True)
+
+    # Timing
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    envoi_apres = models.DateTimeField(_('envoyer après'), null=True, blank=True,
+                                       help_text="Différer l'envoi à une date précise")
+    envoye_a = models.DateTimeField(_('envoyé à'), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('file email')
+        verbose_name_plural = _('file emails')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['statut', '-created_at']),
+            models.Index(fields=['envoi_apres', 'statut']),
+        ]
+
+    def __str__(self):
+        return f"[{self.get_statut_display()}] {self.sujet} → {self.destinataire}"
+
+    def peut_retry(self):
+        """Vérifie si on peut encore réessayer l'envoi"""
+        return self.tentatives < self.max_tentatives and self.statut != self.Statut.ANNULE
