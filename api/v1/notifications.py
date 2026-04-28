@@ -1,32 +1,47 @@
 from django.db import models
 from ninja import Router, Schema
-from notifications.models import GlobalAnnouncement
+from notifications.models import Notification
 from django.utils import timezone
-from typing import Optional, List
+from typing import List, Optional
 import uuid
 
 router = Router()
 
-class AnnouncementOut(Schema):
+class NotificationOut(Schema):
     id: uuid.UUID
     titre: str
     message: str
     type_alerte: str
+    created_at: timezone.datetime
+    is_read: bool
 
-@router.get("/latest-announcement", response=Optional[AnnouncementOut])
-def get_latest_announcement(request):
-    """
-    Récupère la notification globale active.
-    """
-    now = timezone.now()
-    announcement = GlobalAnnouncement.objects.filter(
-        est_actif=True
-    ).filter(
-        models.Q(date_expiration__gt=now) | models.Q(date_expiration__isnull=True)
-    ).first()
-    
-    return announcement
+@router.get("/", response=List[NotificationOut])
+def list_notifications(request):
+    """Liste les notifications de l'utilisateur (globales + privées)"""
+    if not request.user.is_authenticated:
+        return []
+        
+    return Notification.objects.filter(
+        models.Q(recipient=request.user) | models.Q(recipient__isnull=True)
+    ).order_by('-created_at')[:20]
 
-@router.get("/all", response=List[AnnouncementOut])
-def list_announcements(request):
-    return GlobalAnnouncement.objects.filter(est_actif=True)[:10]
+@router.post("/{notification_id}/read")
+def mark_as_read(request, notification_id: uuid.UUID):
+    """Marque une notification comme lue"""
+    if not request.user.is_authenticated:
+        return {"success": False}
+        
+    Notification.objects.filter(id=notification_id, recipient=request.user).update(is_read=True)
+    return {"success": True}
+
+@router.get("/unread-count")
+def unread_count(request):
+    """Nombre de notifications non lues"""
+    if not request.user.is_authenticated:
+        return {"count": 0}
+        
+    count = Notification.objects.filter(
+        models.Q(recipient=request.user) | models.Q(recipient__isnull=True),
+        is_read=False
+    ).count()
+    return {"count": count}

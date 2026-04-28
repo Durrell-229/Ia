@@ -168,8 +168,7 @@ def qcm_submit_view(request):
         
         # === ÉTAPE 2: ENREGISTREMENT DU RÉSULTAT ===
         # Création session composition temporaire pour lien avec resultat
-        exam_title = f"QCM - {ctx.get('matiere', 'Évaluation)}"
-        
+        exam_title = f"QCM - {ctx.get('matiere', 'Évaluation')}"       
         # Vérifier si session existe déjà
         session, created = CompositionSession.objects.get_or_create(
             exam=None,  # Pas besoin d'exam réel pour QCM simple

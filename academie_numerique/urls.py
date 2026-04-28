@@ -18,7 +18,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('exams/', include('exams.urls')),
     path('compositions/', include('compositions.urls')),
-    path('notifications/', include('notifications.urls')),
+
     path('correction/', include('correction.urls')),
     path('bulletins/', include('bulletins.urls')),
     path('certificates/', include('certifications.urls')),

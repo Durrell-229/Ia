@@ -24,7 +24,7 @@
     </div>
 
     <!-- Tabs Content -->
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 gap-8">
         <!-- Approvals -->
         <div class="bg-bg-secondary border border-border-standard p-6 rounded-3xl">
             <h2 class="text-xl font-bold mb-6 flex items-center">
@@ -44,23 +44,6 @@
                 </div>
                 {% empty %}
                 <p class="text-text-muted italic text-center py-8">Aucune demande en attente.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Notifications & Quick Actions -->
-        <div class="bg-bg-secondary border border-border-standard p-6 rounded-3xl">
-            <h2 class="text-xl font-bold mb-6 flex items-center">
-                <i class="fa-solid fa-bell mr-3 text-warning"></i> Alertes Système
-            </h2>
-            <div class="space-y-4">
-                {% for note in notifications %}
-                <div class="bg-bg-secondary/50 p-4 rounded-2xl">
-                    <p class="font-bold text-white text-sm">{{ note.title }}</p>
-                    <p class="text-xs text-text-muted mt-1">{{ note.message }}</p>
-                </div>
-                {% empty %}
-                <p class="text-text-muted italic text-center py-8">Aucune notification.</p>
                 {% endfor %}
             </div>
         </div>

@@ -263,13 +263,6 @@ def dashboard_view(request):
         recent_results = Resultat.objects.select_related(
             'session', 'session__eleve', 'session__exam'
         ).order_by('-created_at')[:15]
-
-        try:
-            from notifications.models import Notification
-            unread_notifs = Notification.objects.filter(is_read=False).count()
-        except Exception:
-            unread_notifs = 0
-
         context.update({
             'is_admin': True,
             'total_users': total_users,
@@ -281,7 +274,6 @@ def dashboard_view(request):
             'total_results': total_results,
             'pending_approvals': pending_approvals,
             'pending_count': pending_approvals.count(),
-            'avg_global': round(float(avg_global), 1),
             'ia_corrections': ia_corrections,
             'human_corrections': human_corrections,
             'live_sessions': live_sessions,
@@ -290,7 +282,6 @@ def dashboard_view(request):
             'cheat_rate': cheat_rate,
             'new_users_week': new_users_week,
             'recent_results': recent_results,
-            'unread_notifs': unread_notifs,
             'AI_PROVIDER': getattr(settings, 'AI_PROVIDER', 'gemini'),
         })
         return render(request, 'accounts/dashboard_admin.html', context)

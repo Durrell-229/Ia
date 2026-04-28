@@ -5,7 +5,7 @@ from accounts.api import router as accounts_router
 from exams.api import router as exams_router
 from compositions.api import router as compositions_router
 from core.public_api import router as public_router
-from videoconf.api import videoconf_api as videoconf_router
+from videoconf.api import router as videoconf_router
 
 api = NinjaAPI(
     title="Académie Numérique API",
