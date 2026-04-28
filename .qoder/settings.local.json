@@ -14,7 +14,9 @@
       "Bash(rm -rf .venv 2>/dev/null; mkdir -p /home/kali/.qoder/tmp/-sdcard-Download-numerique-ia-composition-main-numerique-ia-composition-main1/venv && python3 -m venv /home/kali/.qoder/tmp/-sdcard-Download-numerique-ia-composition-main-numerique-ia-composition-main1/venv --symlinks 2>&1)",
       "Bash(sudo apt-get:*)",
       "Bash(grep:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(pip3 list:*)",
+      "Bash(pip3 install:*)"
     ]
   }
 }
